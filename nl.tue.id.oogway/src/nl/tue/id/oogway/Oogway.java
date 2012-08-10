@@ -29,12 +29,11 @@ import processing.core.PApplet;
  * @author Loe Feijs
  * 
  */
-public class Oogway {
-	
+public class Oogway implements Cloneable{
+
 	/** The PApplet to render to. */
 	private PApplet applet;
-	private float fromx;
-	private float fromy;
+
 	/** The angle (in degrees) that the Oogway is heading. */
 	private float heading;
 	/** If false, the Oogway moves but does not leave a trail. */
@@ -44,31 +43,25 @@ public class Oogway {
 	/** Reflection */
 	private int reflect;
 
-	private Vector<float[]> splinePoints = new Vector<float[]>();
-	private Vector<Oogway> states = new Vector<Oogway>();
 
-	public float x; // a copy of xcor, for read only access;
+	private Vector<Oogway> states = new Vector<Oogway>();
+	
+	private Graphics g;
+
 	/**
 	 * x location on screen. Any change to this variable must be done using
-	 * moveTo.
+	 * setPosition.
 	 */
 	private float xcor;
-	public float y; // a copy of ycor, for read only access;
 	/**
 	 * y location on screen. Any change to this variable must be done using
-	 * moveTo.
+	 * setPosition.
 	 */
 	private float ycor;
+	
+	private Spline spline;
+	private Path path;
 
-	/**
-	 * "Copy" constructor, creates an identical Oogway to the one passed in.
-	 * 
-	 * @param t
-	 *            Oogway to copy.
-	 */
-	public Oogway(Oogway o) {
-		copy(o);
-	}
 
 	/**
 	 * Standard constructor, creates a Oogway in the middle of the screen which
@@ -79,16 +72,20 @@ public class Oogway {
 	 */
 	public Oogway(PApplet applet) {
 		this.applet = applet;
-		moveTo(xcor = applet.width / 2, applet.height / 2);
+		g = new Graphics(applet);
+		setPosition(xcor = applet.width / 2, applet.height / 2);
 		penColor = applet.color(255, 255, 255);
 		isDown = true;
 		heading = 0f;
 		reflect = 1;
+		spline = new Spline(applet);
+		path = new Path(applet);
+		
 	}
-	
-	public void home(){
-		moveTo(xcor = applet.width / 2, applet.height / 2);
-		heading(0f);
+
+	public void home() {
+		setPosition(xcor = applet.width / 2, applet.height / 2);
+		setHeading(0f);
 	}
 
 	/**
@@ -101,16 +98,22 @@ public class Oogway {
 		forward(-distance);
 	}
 
-	private Oogway copy(Oogway o) {
+	protected void copy(Oogway o) {
 		applet = o.applet;
-		moveTo(o.xcor, o.ycor);
+		g = o.g;
+		setPosition(o.xcor, o.ycor);
 		penColor = o.penColor;
 		isDown = o.isDown;
 		heading = o.heading;
 		reflect = o.reflect;
-		fromx = o.fromx;
-		fromy = o.fromy;
-		return this;
+		path.copy(o.path);
+		spline.copy(o.spline);
+	}
+	
+	public Oogway clone(){
+		Oogway o = new Oogway(applet);
+		o.copy(this);
+		return o;
 	}
 
 	/**
@@ -133,21 +136,29 @@ public class Oogway {
 	public void pendown() {
 		isDown = true;
 	}
-	
-	public void pd(){
+
+	public void pd() {
+		pendown();
+	}
+
+	public void pu() {
+		penup();
+	}
+
+	public void up() {
+		penup();
+	}
+
+	public void down() {
 		pendown();
 	}
 	
-	public void  pu(){
-		penup();
+	public float xcor(){
+		return xcor();
 	}
 	
-	public void up(){
-		penup();
-	}
-	
-	public void down(){
-		pendown();
+	public float ycor(){
+		return ycor();
 	}
 
 	/**
@@ -160,64 +171,57 @@ public class Oogway {
 	 *            location in y axis
 	 */
 	private void drawLine(float x, float y) {
-		drawSpline(x, y);
-
+		
+		g.save();
+		
 		if (isDown) {
 			applet.stroke(penColor);
 			applet.line(xcor, ycor, x, y);
 		}
 
-		moveTo(x, y);
-
+        g.restore();
 	}
 
 	private void drawPath(Path path) {
-		boolean fill = applet.g.fill;
-		int c = applet.g.fillColor;
-		applet.noFill();
-
-		drawSpline(path.getEnd()[0], path.getEnd()[1]);
-
+        g.save();
+        
+        applet.noFill();
+        
 		if (isDown) {
 			applet.stroke(penColor);
 			path.draw();
 		}
 
-		moveTo(path.getEnd()[0], path.getEnd()[1]);
-		
-		if (fill)
-			applet.fill(c);
-		else
-			applet.noFill();
-	}
-
-	private void drawSpline(float x, float y) {
-		
-		if (splinePoints.size() < 3) // at least three vertexes are needed.
-			return;
-		
-		boolean fill = applet.g.fill;
-		int c = applet.g.fillColor;
-		applet.noFill();
-
-		addSplinePoint(x, y);
-
-		applet.beginShape();
-		for (int i = 0; i < splinePoints.size(); i++)
-			applet.curveVertex(splinePoints.get(i)[0], splinePoints.get(i)[1]);
-		applet.endShape();
-        
-		splinePoints.clear();
-		
-		if (fill)
-			applet.fill(c);
-		else
-			applet.noFill();		
+		g.restore();
 
 	}
+
+	private void drawSpline() {
+
+
+       g.save();
+       
+       applet.noFill();
+       
+		if (isDown) {
+			applet.stroke(penColor);
+			spline.draw();
+		}
+       
+       
+       g.restore();
+
+	}
+	
+	public void endSpline(){
+		drawSpline();
+		spline.clear();
+	}
+	
 
 	public void recall() {
-		if(states.size()<1) return;
+		if (states.size() < 1)
+			return;
 		Oogway o = states.get(states.size() - 1);
 		states.remove(states.size() - 1);
 		copy(o);
@@ -235,13 +239,14 @@ public class Oogway {
 		newX = xcor + (distance * PApplet.cos(rotRad));
 		newY = ycor + (distance * PApplet.sin(rotRad));
 		drawLine(newX, newY);
+		setPosition(newX, newX);
 	}
-	
-	public void fd(float distance){
+
+	public void fd(float distance) {
 		forward(distance);
 	}
-	
-	public void bk(float distance){
+
+	public void bk(float distance) {
 		backward(distance);
 	}
 
@@ -250,7 +255,6 @@ public class Oogway {
 	 * 
 	 * @return angle in degrees.
 	 */
-	/* FIXME: should this be float as well? */
 	public float heading() {
 		return heading;
 	}
@@ -261,7 +265,7 @@ public class Oogway {
 	 * @param heading
 	 *            heading in degrees.
 	 */
-	public void heading(float angle) {
+	public void setHeading(float angle) {
 		heading = angle;
 	}
 
@@ -278,8 +282,8 @@ public class Oogway {
 	public void left(float angle) {
 		heading -= angle * reflect;
 	}
-	
-	public void lt(float angle){
+
+	public void lt(float angle) {
 		left(angle);
 	}
 
@@ -292,54 +296,26 @@ public class Oogway {
 	 * @param y
 	 *            location in y axis.
 	 */
-	private void moveTo(float x, float y) {
-		fromx = xcor;
-		fromy = ycor;
+	public void setPosition(float x, float y) {
 		xcor = x;
 		ycor = y;
-		this.x = xcor;
-		this.y = ycor;
-	}
-	
-	public void pathAlong(float distance, String s) {
-		Path path = new Path(applet, s);
-		pathAlong(distance, path);
-	}
-
-	public void pathAlong(float distance, Path path) {
-		
-		path = new Path(path); //keep the input path intact.
-
-		path.placeAlongX();
-		if (reflect == -1)
-			path.reflectInX();
-		float rotRad = PApplet.radians(heading - path.getStartRotation());
-		path.rotateRad(rotRad);
-		path.scaleTo(distance);
-
-		path.moveTo(xcor, ycor);
-		drawPath(path);
-		heading = path.getEndRotation();
-
 	}
 
 	public void pathBackward(float distance, String s) {
 		pathForward(-distance, s);
 	}
-	
-	public void pathBackward(float distance, Path path){
+
+	public void pathBackward(float distance, Path path) {
 		pathForward(-distance, path);
 	}
-	
+
 	public void pathForward(float distance, String s) {
 		Path path = new Path(applet, s);
 		pathForward(distance, path);
 	}
 
 	public void pathForward(float distance, Path path) {
-		
-		path = new Path(path); //keep the input path intact.
-		
+
 		float rotRad = PApplet.radians(heading);
 
 		path.placeAlongX();
@@ -350,7 +326,6 @@ public class Oogway {
 
 		path.moveTo(xcor, ycor);
 		drawPath(path);
-		heading = path.getEndRotation();
 	}
 
 	/**
@@ -360,7 +335,7 @@ public class Oogway {
 	 *            a color created with
 	 *            {@link processing.core.PApplet#color(int, int, int)}.
 	 */
-	public void penColor(int c) {
+	public void setPenColor(int c) {
 		penColor = c;
 	}
 
@@ -374,16 +349,24 @@ public class Oogway {
 	 * @param b
 	 *            blue value, 0-255.
 	 */
-	public void penColor(int r, int g, int b) {
+	public void setPenColor(int r, int g, int b) {
 		penColor = applet.color(r, g, b);
 	}
+	
+	public int penColor(){
+		return penColor;
+	}
 
-	public void reflect() {
-		reflect = -1 * reflect;
+	public void beginReflection() {
+		reflect = -1;
+	}
+
+	public void endReflection() {
+		reflect = -1;
 	}
 
 	public void remember() {
-		states.add(new Oogway(this));
+		states.add(clone());
 	}
 
 	/**
@@ -395,15 +378,11 @@ public class Oogway {
 	public void right(float angle) {
 		heading += angle * reflect;
 	}
-	
+
 	public void rt(float angle) {
 		right(angle);
 	}
 
-	public void setPosition(float x, float y) {
-		moveTo(x, y);
-		drawSpline(x, y);
-	}
 
 	public void splineBackward(float distance) {
 		splineForward(-distance);
@@ -415,21 +394,11 @@ public class Oogway {
 		newX = xcor + (distance * PApplet.cos(rotRad));
 		newY = ycor + (distance * PApplet.sin(rotRad));
 
-		addSplinePoint(newX, newY);
-		moveTo(newX, newY);
+		spline.curveVertex(newX, newY);
+		setPosition(newX, newY);
 	}
 
-	private void addSplinePoint(float x, float y) {
-		if (splinePoints.size() < 2) {
-			float p[] = { fromx, fromy };
-			splinePoints.add(p);
-			float p2[] = { xcor, ycor };
-			splinePoints.add(p2);
-		}
 
-		float p[] = { x, y };
-		splinePoints.add(p);
-	}
 
 	public void stamp() {
 		applet.pushMatrix();
@@ -477,8 +446,8 @@ public class Oogway {
 	}
 
 	public float towards(float x, float y) {
-		
-  	    float rotRad = PApplet.atan2(y - ycor, x - xcor);
+
+		float rotRad = PApplet.atan2(y - ycor, x - xcor);
 		return PApplet.degrees(rotRad);
 	}
 
