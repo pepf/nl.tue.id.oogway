@@ -22,27 +22,68 @@ import processing.core.PApplet;
 import processing.core.PConstants;
 import processing.xml.XMLElement;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class Path.
+ */
 public class Path {
 
+	/** The applet. */
 	PApplet applet;
+
+	/** The closed. */
 	boolean closed = false;
 
+	/** The vertices. */
 	Vector<float[]> vertices = new Vector<float[]>();
 
+	/**
+	 * Instantiates a new path.
+	 * 
+	 * @param applet
+	 *            the applet
+	 */
 	public Path(PApplet applet) {
 		this.applet = applet;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "Path [applet=" + applet + ", closed=" + closed + ", vertices="
+				+ vertices + "]";
+	}
+
+	/**
+	 * Instantiates a new path.
+	 * 
+	 * @param applet
+	 *            the applet
+	 * @param path
+	 *            the path
+	 */
 	public Path(PApplet applet, String path) {
 
 		this.applet = applet;
 		loadPath(path);
 	}
 
+	/**
+	 * Clear.
+	 */
 	public void clear() {
 		vertices.clear();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#clone()
+	 */
 	public Path clone() {
 		Path path = new Path(applet);
 		path.copy(this);
@@ -50,6 +91,12 @@ public class Path {
 
 	}
 
+	/**
+	 * Copy.
+	 * 
+	 * @param path
+	 *            the path
+	 */
 	protected void copy(Path path) {
 		this.applet = path.applet;
 		this.clear();
@@ -60,6 +107,9 @@ public class Path {
 		}
 	}
 
+	/**
+	 * Draw.
+	 */
 	public void draw() {
 
 		if (vertices.size() < 4)
@@ -83,6 +133,12 @@ public class Path {
 			applet.endShape();
 	}
 
+	/**
+	 * Load path.
+	 * 
+	 * @param path
+	 *            the path
+	 */
 	protected void loadPath(String path) {
 
 		this.clear();
@@ -146,6 +202,7 @@ public class Path {
 				i += 2;
 				vertices.add(s);
 			}
+				break;
 			// C - curve to (absolute)
 			case 'C': {
 				float curvePA[] = { valueOf(pathDataKeys[i + 1]),
@@ -226,6 +283,14 @@ public class Path {
 		}
 	}
 
+	/**
+	 * Move to.
+	 * 
+	 * @param x
+	 *            the x
+	 * @param y
+	 *            the y
+	 */
 	public void moveTo(float x, float y) {
 
 		if (vertices.isEmpty())
@@ -242,8 +307,11 @@ public class Path {
 		}
 	}
 
+	/**
+	 * Place along x.
+	 */
 	public void placeAlongX() {
-	
+
 		if (vertices.size() < 4)
 			return;
 
@@ -252,6 +320,9 @@ public class Path {
 		rotateRad(-PApplet.atan2(end[1], end[0])); // rotate to X axis
 	}
 
+	/**
+	 * Reflect in x.
+	 */
 	public void reflectInX() {
 		for (int i = 0; i < vertices.size(); i++) {
 			float a[] = (float[]) vertices.get(i);
@@ -259,6 +330,12 @@ public class Path {
 		}
 	}
 
+	/**
+	 * Rotate rad.
+	 * 
+	 * @param rotRad
+	 *            the rot rad
+	 */
 	protected void rotateRad(float rotRad) {
 		for (int i = 0; i < vertices.size(); i++) {
 			float a[] = (float[]) vertices.get(i);
@@ -271,6 +348,12 @@ public class Path {
 		}
 	}
 
+	/**
+	 * Scale to.
+	 * 
+	 * @param size
+	 *            the size
+	 */
 	public void scaleTo(float size) {
 
 		if (vertices.size() < 4)
@@ -289,6 +372,13 @@ public class Path {
 		}
 	}
 
+	/**
+	 * Try svg file.
+	 * 
+	 * @param filename
+	 *            the filename
+	 * @return the string
+	 */
 	public String trySvgFile(String filename) {
 		filename = filename.trim();
 
@@ -321,6 +411,13 @@ public class Path {
 	}
 
 	// Converts a string to a float
+	/**
+	 * Value of.
+	 * 
+	 * @param s
+	 *            the s
+	 * @return the float
+	 */
 	private float valueOf(String s) {
 		return Float.valueOf(s).floatValue();
 	}
