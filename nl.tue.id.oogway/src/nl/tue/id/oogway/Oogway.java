@@ -29,39 +29,39 @@ import processing.core.PApplet;
  * @author Loe Feijs
  * 
  */
-public class Oogway implements Cloneable{
+public class Oogway implements Cloneable {
 
 	/** The PApplet to render to. */
 	private PApplet applet;
 
+	private Graphics g;
 	/** The angle (in degrees) that the Oogway is heading. */
-	private float heading;
+	private float heading = 0.0f;
 	/** If false, the Oogway moves but does not leave a trail. */
-	private boolean isDown;
+	private boolean isDown = true;
+	private Path path;
+
 	/** Color of line drawn by Oogway (as a Processing color). */
 	private int penColor;
+
 	/** Reflection */
-	private int reflect;
+	private int reflect = 1;
 
-
+	private Spline spline;
 	private Vector<Oogway> states = new Vector<Oogway>();
-	
-	private Graphics g;
 
+	private Trace trace = Trace.LINE;
 	/**
 	 * x location on screen. Any change to this variable must be done using
 	 * setPosition.
 	 */
 	private float xcor;
+
 	/**
 	 * y location on screen. Any change to this variable must be done using
 	 * setPosition.
 	 */
 	private float ycor;
-	
-	private Spline spline;
-	private Path path;
-
 
 	/**
 	 * Standard constructor, creates a Oogway in the middle of the screen which
@@ -75,17 +75,9 @@ public class Oogway implements Cloneable{
 		g = new Graphics(applet);
 		setPosition(xcor = applet.width / 2, applet.height / 2);
 		penColor = applet.color(255, 255, 255);
-		isDown = true;
-		heading = 0f;
-		reflect = 1;
 		spline = new Spline(applet);
 		path = new Path(applet);
-		
-	}
 
-	public void home() {
-		setPosition(xcor = applet.width / 2, applet.height / 2);
-		setHeading(0f);
 	}
 
 	/**
@@ -98,6 +90,32 @@ public class Oogway implements Cloneable{
 		forward(-distance);
 	}
 
+	public void beginReflection() {
+		reflect = -1;
+	}
+
+	public void beginSpline() {
+		beginSpline(xcor, ycor);
+	}
+
+	public void beginSpline(float x, float y) {
+		spline.clear();
+		spline.curveVertex(x, y);
+		spline.curveVertex(xcor, ycor);
+		trace = Trace.SPLINE;
+	}
+
+	public void bk(float distance) {
+		backward(distance);
+	}
+
+	public Oogway clone() {
+		Oogway o = new Oogway(applet);
+		o.copy(this);
+		return o;
+	}
+
+
 	protected void copy(Oogway o) {
 		applet = o.applet;
 		g = o.g;
@@ -106,15 +124,14 @@ public class Oogway implements Cloneable{
 		isDown = o.isDown;
 		heading = o.heading;
 		reflect = o.reflect;
+		trace = o.trace;
 		path.copy(o.path);
 		spline.copy(o.spline);
+		states.clear();
+		for(int i = 0; i<o.states.size(); i++)
+			states.add(o.states.get(i));
 	}
 	
-	public Oogway clone(){
-		Oogway o = new Oogway(applet);
-		o.copy(this);
-		return o;
-	}
 
 	/**
 	 * Get the distance between this Oogway and point (x,y).
@@ -130,35 +147,8 @@ public class Oogway implements Cloneable{
 				+ PApplet.pow((x - ycor), 2));
 	}
 
-	/**
-	 * put the pen down (draw subsequent movements)
-	 */
-	public void pendown() {
-		isDown = true;
-	}
-
-	public void pd() {
-		pendown();
-	}
-
-	public void pu() {
-		penup();
-	}
-
-	public void up() {
-		penup();
-	}
-
 	public void down() {
 		pendown();
-	}
-	
-	public float xcor(){
-		return xcor();
-	}
-	
-	public float ycor(){
-		return ycor();
 	}
 
 	/**
@@ -171,25 +161,37 @@ public class Oogway implements Cloneable{
 	 *            location in y axis
 	 */
 	private void drawLine(float x, float y) {
-		
+
 		g.save();
-		
+
 		if (isDown) {
 			applet.stroke(penColor);
 			applet.line(xcor, ycor, x, y);
 		}
 
-        g.restore();
+		g.restore();
 	}
 
-	private void drawPath(Path path) {
-        g.save();
-        
-        applet.noFill();
-        
+	private void drawPath(float distance) {
+		
+		float rotRad = PApplet.radians(heading);
+
+		Path p = path.clone();
+
+		if (reflect == -1)
+			p.reflectInX();
+		p.scaleTo(distance);
+		p.rotateRad(rotRad);
+
+
+		p.moveTo(xcor, ycor);
+	
+		g.save();
+		applet.noFill();
+
 		if (isDown) {
 			applet.stroke(penColor);
-			path.draw();
+			p.draw();
 		}
 
 		g.restore();
@@ -198,33 +200,36 @@ public class Oogway implements Cloneable{
 
 	private void drawSpline() {
 
+		g.save();
 
-       g.save();
-       
-       applet.noFill();
-       
+		applet.noFill();
+
 		if (isDown) {
 			applet.stroke(penColor);
 			spline.draw();
 		}
-       
-       
-       g.restore();
+
+		g.restore();
 
 	}
-	
-	public void endSpline(){
+
+	public void endReflection() {
+		reflect = 1;
+	}
+
+	public void endSpline() {
+		endSpline(xcor, ycor);
+	}
+
+	public void endSpline(float x, float y) {
+		spline.curveVertex(x, y);
 		drawSpline();
 		spline.clear();
+		trace = Trace.LINE;
 	}
-	
 
-	public void recall() {
-		if (states.size() < 1)
-			return;
-		Oogway o = states.get(states.size() - 1);
-		states.remove(states.size() - 1);
-		copy(o);
+	public void fd(float distance) {
+		forward(distance);
 	}
 
 	/**
@@ -234,20 +239,25 @@ public class Oogway implements Cloneable{
 	 *            number of pixels to move by.
 	 */
 	public void forward(float distance) {
-		float newX, newY;
+		
+		float x, y;
 		float rotRad = PApplet.radians(heading);
-		newX = xcor + (distance * PApplet.cos(rotRad));
-		newY = ycor + (distance * PApplet.sin(rotRad));
-		drawLine(newX, newY);
-		setPosition(newX, newX);
-	}
-
-	public void fd(float distance) {
-		forward(distance);
-	}
-
-	public void bk(float distance) {
-		backward(distance);
+		x = xcor + (distance * PApplet.cos(rotRad));
+		y = ycor + (distance * PApplet.sin(rotRad));
+		
+		switch(trace){
+		case LINE:
+			drawLine(x,y);
+			break;
+		case SPLINE:
+			spline.curveVertex(x, y);
+			break;
+		case PATH:
+			drawPath(distance);
+			break;
+		}
+		
+		setPosition(x, y);
 	}
 
 	/**
@@ -259,14 +269,9 @@ public class Oogway implements Cloneable{
 		return heading;
 	}
 
-	/**
-	 * Set the direction the Oogway is facing in to an absolute angle.
-	 * 
-	 * @param heading
-	 *            heading in degrees.
-	 */
-	public void setHeading(float angle) {
-		heading = angle;
+	public void home() {
+		setPosition(xcor = applet.width / 2, applet.height / 2);
+		setHeading(0f);
 	}
 
 	public boolean isDown() {
@@ -287,45 +292,90 @@ public class Oogway implements Cloneable{
 		left(angle);
 	}
 
+	public void beginPath(String path) {
+		this.path.loadPath(path);
+		beginPath();
+	}
+
+	public void beginPath(Path path) {
+		this.path.copy(path);
+		beginPath();
+	}
+
+	public void beginPath() {
+		this.path.placeAlongX();
+		trace = Trace.PATH;
+	}
+
 	/**
-	 * Move the Oogway to an absolute location. <strong>This does not
-	 * draw</strong>.
 	 * 
-	 * @param x
-	 *            location in x axis.
-	 * @param y
-	 *            location in y axis.
 	 */
-	public void setPosition(float x, float y) {
-		xcor = x;
-		ycor = y;
+	public void endPath() {
+		path.clear();
+		trace = Trace.LINE;
+	}
+	
+
+	public void pd() {
+		pendown();
 	}
 
-	public void pathBackward(float distance, String s) {
-		pathForward(-distance, s);
+	public int penColor() {
+		return penColor;
 	}
 
-	public void pathBackward(float distance, Path path) {
-		pathForward(-distance, path);
+	/**
+	 * put the pen down (draw subsequent movements)
+	 */
+	public void pendown() {
+		isDown = true;
 	}
 
-	public void pathForward(float distance, String s) {
-		Path path = new Path(applet, s);
-		pathForward(distance, path);
+	/**
+	 * take the pen up (do not draw subsequent movements)
+	 */
+	public void penup() {
+		isDown = false;
 	}
 
-	public void pathForward(float distance, Path path) {
+	public void pu() {
+		penup();
+	}
 
-		float rotRad = PApplet.radians(heading);
+	public void recall() {
+		if (states.size() < 1)
+			return;
+		Oogway o = states.get(states.size() - 1);
+		states.remove(states.size() - 1);
+		copy(o);
+	}
 
-		path.placeAlongX();
-		if (reflect == -1)
-			path.reflectInX();
-		path.scaleTo(distance);
-		path.rotateRad(rotRad);
+	public void remember() {
+		states.add(clone());
+	}
 
-		path.moveTo(xcor, ycor);
-		drawPath(path);
+	/**
+	 * Turn the Oogway right.
+	 * 
+	 * @param angle
+	 *            heading in degrees.
+	 */
+	public void right(float angle) {
+		heading += angle * reflect;
+	}
+
+	public void rt(float angle) {
+		right(angle);
+	}
+
+	/**
+	 * Set the direction the Oogway is facing in to an absolute angle.
+	 * 
+	 * @param heading
+	 *            heading in degrees.
+	 */
+	public void setHeading(float angle) {
+		heading = angle;
 	}
 
 	/**
@@ -352,55 +402,24 @@ public class Oogway implements Cloneable{
 	public void setPenColor(int r, int g, int b) {
 		penColor = applet.color(r, g, b);
 	}
-	
-	public int penColor(){
-		return penColor;
-	}
-
-	public void beginReflection() {
-		reflect = -1;
-	}
-
-	public void endReflection() {
-		reflect = -1;
-	}
-
-	public void remember() {
-		states.add(clone());
-	}
 
 	/**
-	 * Turn the Oogway right.
+	 * Move the Oogway to an absolute location. <strong>This does not
+	 * draw</strong>.
 	 * 
-	 * @param angle
-	 *            heading in degrees.
+	 * @param x
+	 *            location in x axis.
+	 * @param y
+	 *            location in y axis.
 	 */
-	public void right(float angle) {
-		heading += angle * reflect;
+	public void setPosition(float x, float y) {
+		xcor = x;
+		ycor = y;
 	}
-
-	public void rt(float angle) {
-		right(angle);
-	}
-
-
-	public void splineBackward(float distance) {
-		splineForward(-distance);
-	}
-
-	public void splineForward(float distance) {
-		float newX, newY;
-		float rotRad = PApplet.radians(heading);
-		newX = xcor + (distance * PApplet.cos(rotRad));
-		newY = ycor + (distance * PApplet.sin(rotRad));
-
-		spline.curveVertex(newX, newY);
-		setPosition(newX, newY);
-	}
-
-
 
 	public void stamp() {
+		g.save();
+		applet.stroke(penColor);		
 		applet.pushMatrix();
 		applet.translate(xcor, ycor);
 		applet.rotate(0.5f * PApplet.PI + PApplet.radians(heading));
@@ -409,30 +428,7 @@ public class Oogway implements Cloneable{
 		applet.line(0, -10, -10, 10);
 		applet.line(-10, 10, 0, 0);
 		applet.popMatrix();
-	}
-
-	/**
-	 * Strafe the Oogway left.
-	 * 
-	 * @param distance
-	 *            number of pixels to strafe Oogway.
-	 */
-	public void strafeLeft(int distance) {
-		left(90);
-		forward(distance);
-		right(90);
-	}
-
-	/**
-	 * Strafe the Oogway right.
-	 * 
-	 * @param distance
-	 *            number of pixels to strafe Oogway.
-	 */
-	public void strafeRight(int distance) {
-		right(90);
-		forward(distance);
-		left(90);
+		g.restore();
 	}
 
 	/**
@@ -451,11 +447,16 @@ public class Oogway implements Cloneable{
 		return PApplet.degrees(rotRad);
 	}
 
-	/**
-	 * take the pen up (do not draw subsequent movements)
-	 */
-	public void penup() {
-		isDown = false;
+	public void up() {
+		penup();
+	}
+
+	public float xcor() {
+		return xcor();
+	}
+
+	public float ycor() {
+		return ycor();
 	}
 
 }

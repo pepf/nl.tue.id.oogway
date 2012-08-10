@@ -5,16 +5,15 @@ import java.util.Vector;
 
 public class Spline implements Cloneable{
 	
-	private Vector<float[]> vertices = new Vector<float[]>();
 	private PApplet applet;
+	private Vector<float[]> vertices = new Vector<float[]>();
 	
 	public Spline(PApplet applet){
 		this.applet = applet;
 	}
 	
-	public void curveVertex(float x, float y){
-		float v[] = {x, y};
-		vertices.add(v);
+	public void clear(){
+		vertices.clear();
 	}
 	
 	public Spline clone(){
@@ -24,13 +23,14 @@ public class Spline implements Cloneable{
 	}
 	
 	protected void copy(Spline s){
-		vertices.clear();
+		this.clear();
 		for (int i = 0; i < s.vertices.size(); i++)
 			curveVertex(s.vertices.get(i)[0], s.vertices.get(i)[1]);
 	}
 	
-	public void clear(){
-		vertices.clear();
+	public void curveVertex(float x, float y){
+		float v[] = {x, y};
+		vertices.add(v);
 	}
 	
 	public void draw(){

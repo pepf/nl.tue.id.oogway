@@ -13,15 +13,6 @@ public class Graphics {
 		this.applet = applet;
 	}
 	
-	public void save(){
-		fill = applet.g.fill;
-		stroke = applet.g.stroke;
-		fillColor = applet.g.fillColor;
-		strokeColor = applet.g.strokeColor;
-		strokeWeight = applet.g.strokeWeight;
-		
-	}
-	
 	public void restore(){
 		if(fill) applet.fill(fillColor);
 		else applet.noFill();
@@ -30,6 +21,15 @@ public class Graphics {
 		
 		applet.strokeWeight(strokeWeight);
 	
+	}
+	
+	public void save(){
+		fill = applet.g.fill;
+		stroke = applet.g.stroke;
+		fillColor = applet.g.fillColor;
+		strokeColor = applet.g.strokeColor;
+		strokeWeight = applet.g.strokeWeight;
+		
 	}
 
 }

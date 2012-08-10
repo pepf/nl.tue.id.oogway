@@ -24,31 +24,76 @@ import processing.xml.XMLElement;
 
 public class Path {
 
-	Vector<float[]> vertices = new Vector<float[]>();
 	PApplet applet;
-
 	boolean closed = false;
 
-	public Path(PApplet applet, String pathString) {
+	Vector<float[]> vertices = new Vector<float[]>();
+
+	public Path(PApplet applet) {
+		this.applet = applet;
+	}
+
+	public Path(PApplet applet, String path) {
 
 		this.applet = applet;
-		setString(pathString);
+		loadPath(path);
 	}
-	
-	
-	public Path(PApplet applet){
-		this.applet = applet;
+
+	public void clear() {
+		vertices.clear();
 	}
-	
-	protected void setString(String pathString){
-		
+
+	public Path clone() {
+		Path path = new Path(applet);
+		path.copy(this);
+		return path;
+
+	}
+
+	protected void copy(Path path) {
+		this.applet = path.applet;
+		this.clear();
+		for (int i = 0; i < path.vertices.size(); i++) {
+			float a[] = (float[]) path.vertices.get(i);
+			float b[] = { a[0], a[1] };
+			vertices.add(b);
+		}
+	}
+
+	public void draw() {
+
+		if (vertices.size() < 4)
+			return;
+
+		applet.beginShape();
+		float start[] = (float[]) vertices.get(0);
+		applet.vertex(start[0], start[1]);
+		for (int i = 1; i < vertices.size(); i += 3) {
+			float a[] = (float[]) vertices.get(i);
+			float b[] = (float[]) vertices.get(i + 1);
+			float e[] = (float[]) vertices.get(i + 2);
+
+			applet.bezierVertex(a[0], a[1], b[0], b[1], e[0], e[1]);
+
+		}
+
+		if (closed)
+			applet.endShape(PConstants.CLOSE);
+		else
+			applet.endShape();
+	}
+
+	protected void loadPath(String path) {
+
+		this.clear();
+
 		StringBuffer pathChars = new StringBuffer();
 
-		String pathDataBuffer = trySvgFile(pathString); // try whether "path" is a SVG
+		String pathDataBuffer = trySvgFile(path); // try whether "path" is a SVG
 													// file;
 
 		if (pathDataBuffer == null)
-			pathDataBuffer = pathString;
+			pathDataBuffer = path;
 
 		boolean lastSeperate = false;
 
@@ -136,7 +181,8 @@ public class Path {
 			// S - curve to shorthand (absolute)
 			case 'S': {
 				float lastPoint[] = (float[]) vertices.get(vertices.size() - 1);
-				float lastLastPoint[] = (float[]) vertices.get(vertices.size() - 2);
+				float lastLastPoint[] = (float[]) vertices
+						.get(vertices.size() - 2);
 				float curvePA[] = { cp[0] + (lastPoint[0] - lastLastPoint[0]),
 						cp[1] + (lastPoint[1] - lastLastPoint[1]) };
 				float curvePB[] = { valueOf(pathDataKeys[i + 1]),
@@ -154,7 +200,8 @@ public class Path {
 			// s - curve to shorthand (relative)
 			case 's': {
 				float lastPoint[] = (float[]) vertices.get(vertices.size() - 1);
-				float lastLastPoint[] = (float[]) vertices.get(vertices.size() - 2);
+				float lastLastPoint[] = (float[]) vertices
+						.get(vertices.size() - 2);
 				float curvePA[] = { cp[0] + (lastPoint[0] - lastLastPoint[0]),
 						cp[1] + (lastPoint[1] - lastLastPoint[1]) };
 				float curvePB[] = { cp[0] + valueOf(pathDataKeys[i + 1]),
@@ -178,40 +225,83 @@ public class Path {
 			}
 		}
 	}
-	
 
-	protected void copy(Path path) {
-		this.applet = path.applet;
-		for (int i = 0; i < path.vertices.size(); i++) {
-			float a[] = (float[]) path.vertices.get(i);
-			float b[] = {a[0], a[1]};
-			vertices.add(b);
+	public void moveTo(float x, float y) {
+
+		if (vertices.isEmpty())
+			return;
+
+		float start[] = (float[]) vertices.get(0);
+		float offset[] = { x - start[0], y - start[1] };
+
+		for (int i = 0; i < vertices.size(); i++) {
+			float a[] = (float[]) vertices.get(i);
+
+			a[0] = a[0] + offset[0];
+			a[1] = a[1] + offset[1];
 		}
 	}
+
+	public void placeAlongX() {
 	
-	public Path clone(){
-		Path path = new Path(applet, "");
-		path.copy(this);
-		return path;
-		
-	}
-	
-	public void clear(){
-		vertices.clear();
+		if (vertices.size() < 4)
+			return;
+
+		moveTo(0, 0);
+		float end[] = (float[]) vertices.get(vertices.size() - 1);
+		rotateRad(-PApplet.atan2(end[1], end[0])); // rotate to X axis
 	}
 
+	public void reflectInX() {
+		for (int i = 0; i < vertices.size(); i++) {
+			float a[] = (float[]) vertices.get(i);
+			a[1] = -a[1];
+		}
+	}
+
+	protected void rotateRad(float rotRad) {
+		for (int i = 0; i < vertices.size(); i++) {
+			float a[] = (float[]) vertices.get(i);
+
+			float x = a[0], y = a[1];
+			float sin = PApplet.sin(rotRad), cos = PApplet.cos(rotRad);
+
+			a[0] = x * cos - y * sin;
+			a[1] = x * sin + y * cos;
+		}
+	}
+
+	public void scaleTo(float size) {
+
+		if (vertices.size() < 4)
+			return;
+
+		float start[] = (float[]) vertices.get(0);
+		float end[] = (float[]) vertices.get(vertices.size() - 1);
+		float distance = PApplet.sqrt(PApplet.pow(end[0] - start[0], 2)
+				+ PApplet.pow(end[1] - start[1], 2));
+
+		for (int i = 0; i < vertices.size(); i++) {
+			float a[] = (float[]) vertices.get(i);
+
+			a[0] = a[0] * size / distance;
+			a[1] = a[1] * size / distance;
+		}
+	}
 
 	public String trySvgFile(String filename) {
 		filename = filename.trim();
-		
-		if(filename.length()<4) return null;
-		
-		if (filename.length()>4){
-			if(!filename.substring(filename.length()-4).equalsIgnoreCase(".svg")){
+
+		if (filename.length() < 4)
+			return null;
+
+		if (filename.length() > 4) {
+			if (!filename.substring(filename.length() - 4).equalsIgnoreCase(
+					".svg")) {
 				return null;
 			}
 		}
-		
+
 		XMLElement xml = null;
 		try {
 			xml = new XMLElement(applet, filename);
@@ -229,98 +319,6 @@ public class Path {
 		}
 		return null;
 	}
-
-	public void moveTo(float x, float y) {
-		float start[] = (float[]) vertices.get(0);
-		float offset[] = { x - start[0], y - start[1] };
-
-		for (int i = 0; i < vertices.size(); i++) {
-			float a[] = (float[]) vertices.get(i);
-
-			a[0] = a[0] + offset[0];
-			a[1] = a[1] + offset[1];
-		}
-	}
-
-	public void placeAlongX() {
-		moveTo(0, 0);
-		float end[] = (float[]) vertices.get(vertices.size() - 1);
-		rotateRad(-PApplet.atan2(end[1], end[0])); // rotate to X axis
-	}
-	
-	public void reflectInX(){
-		for (int i = 0; i < vertices.size(); i++) {
-			float a[] = (float[]) vertices.get(i);
-			a[1] = -a[1];	
-		}
-	}
-
-	public void scaleTo(float size) {
-		float start[] = (float[]) vertices.get(0);
-		float end[] = (float[]) vertices.get(vertices.size() - 1);
-		float distance = PApplet.sqrt(PApplet.pow(end[0] - start[0], 2)
-				+ PApplet.pow(end[1] - start[1], 2));
-
-		for (int i = 0; i < vertices.size(); i++) {
-			float a[] = (float[]) vertices.get(i);
-
-			a[0] = a[0] * size / distance;
-			a[1] = a[1] * size / distance;
-		}
-	}
-
-	protected void rotateRad(float rotRad) {
-
-		for (int i = 0; i < vertices.size(); i++) {
-			float a[] = (float[]) vertices.get(i);
-
-			float x = a[0], y = a[1];
-			float sin = PApplet.sin(rotRad), cos = PApplet.cos(rotRad);
-
-			a[0] = x * cos - y * sin;
-			a[1] = x * sin + y * cos;
-		}
-	}
-
-	public float endHeading() {
-		float e[] = (float[]) vertices.get(vertices.size() - 1);
-		float c[] = (float[]) vertices.get(vertices.size() - 4); // control point
-		//float c[] = (float[]) points.get(points.size() - 2); // control point ?
-		return PApplet.degrees(PApplet.atan2(e[1] - c[1], e[0] - c[0]));
-	}
-
-	public float[] getEnd() {
-		return (float[]) vertices.get(vertices.size() - 1);
-	}
-
-	public float startHeading() {
-		float c[] = (float[]) vertices.get(3); // control point 
-		//float c[] = (float[]) points.get(1); // control point ? 
-		float e[] = (float[]) vertices.get(0);
-		return PApplet.degrees(PApplet.atan2(c[1] - e[1], c[0] - e[0]));
-	}
-
-	public void draw() {
-		// draw the path
-		applet.beginShape();
-		float start[] = (float[]) vertices.get(0);
-		applet.vertex(start[0], start[1]);
-		for (int i = 1; i < vertices.size(); i += 3) {
-			float a[] = (float[]) vertices.get(i);
-			float b[] = (float[]) vertices.get(i + 1);
-			float e[] = (float[]) vertices.get(i + 2);
-
-			applet.bezierVertex(a[0], a[1], b[0], b[1], e[0], e[1]);
-
-		}
-
-		if (closed)
-			applet.endShape(PConstants.CLOSE);
-		else
-			// p.beginShape();
-			applet.endShape();
-	}
-
 
 	// Converts a string to a float
 	private float valueOf(String s) {
