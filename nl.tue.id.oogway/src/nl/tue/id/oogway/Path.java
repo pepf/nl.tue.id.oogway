@@ -291,7 +291,7 @@ public class Path {
 	 * @param y
 	 *            the y
 	 */
-	public void moveTo(float x, float y) {
+	private void moveTo(float x, float y) {
 
 		if (vertices.isEmpty())
 			return;
@@ -310,20 +310,21 @@ public class Path {
 	/**
 	 * Place along x.
 	 */
-	public void placeAlongX() {
+	private boolean placeAlongX() {
 
 		if (vertices.size() < 4)
-			return;
+			return false;
 
 		moveTo(0, 0);
 		float end[] = (float[]) vertices.get(vertices.size() - 1);
 		rotateRad(-PApplet.atan2(end[1], end[0])); // rotate to X axis
+		return true;
 	}
 
 	/**
 	 * Reflect in x.
 	 */
-	public void reflectInX() {
+	private void reflectInX() {
 		for (int i = 0; i < vertices.size(); i++) {
 			float a[] = (float[]) vertices.get(i);
 			a[1] = -a[1];
@@ -336,7 +337,7 @@ public class Path {
 	 * @param rotRad
 	 *            the rot rad
 	 */
-	protected void rotateRad(float rotRad) {
+	private void rotateRad(float rotRad) {
 		for (int i = 0; i < vertices.size(); i++) {
 			float a[] = (float[]) vertices.get(i);
 
@@ -354,15 +355,21 @@ public class Path {
 	 * @param size
 	 *            the size
 	 */
-	public void scaleTo(float size) {
+	private boolean scaleTo(float size) {
 
 		if (vertices.size() < 4)
-			return;
+			return false;
 
 		float start[] = (float[]) vertices.get(0);
 		float end[] = (float[]) vertices.get(vertices.size() - 1);
 		float distance = PApplet.sqrt(PApplet.pow(end[0] - start[0], 2)
 				+ PApplet.pow(end[1] - start[1], 2));
+
+		if (distance < PApplet.EPSILON) {
+			System.err
+					.println("Starting and ending points are too close in the path. ");
+			return false;
+		}
 
 		for (int i = 0; i < vertices.size(); i++) {
 			float a[] = (float[]) vertices.get(i);
@@ -370,6 +377,8 @@ public class Path {
 			a[0] = a[0] * size / distance;
 			a[1] = a[1] * size / distance;
 		}
+
+		return true;
 	}
 
 	/**
@@ -408,6 +417,51 @@ public class Path {
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * Transform.
+	 * 
+	 * @param x
+	 *            the x
+	 * @param y
+	 *            the y
+	 * @param distance
+	 *            the distance
+	 * @param headingRad
+	 *            the heading rad
+	 * @param reflect
+	 *            the reflect
+	 */
+	public void transform(float x, float y, float distance, float headingRad,
+			int reflect) {
+
+		boolean success = placeAlongX();
+
+		if (success) {
+			if (reflect == -1)
+				reflectInX();
+
+			success = (success && scaleTo(distance));
+
+			if (success) {
+				rotateRad(headingRad);
+				moveTo(x, y);
+			}
+		}
+
+		if (!success) {
+			System.err
+					.println("Failed to transform the path. A line is drawn instead.");
+			clear();
+			vertices.add(new float[] { x, y });
+			vertices.add(new float[] { x, y });
+			float newX = x + distance * PApplet.cos(headingRad);
+			float newY = y + distance * PApplet.sin(headingRad);
+			vertices.add(new float[] { newX, newY });
+			vertices.add(new float[] { newX, newY });
+		}
+
 	}
 
 	// Converts a string to a float

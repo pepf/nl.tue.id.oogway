@@ -218,13 +218,7 @@ public class Oogway implements Cloneable {
 
 		Path p = path.clone();
 
-		if (reflect == -1)
-			p.reflectInX();
-		p.scaleTo(distance);
-		p.rotateRad(rotRad);
-
-
-		p.moveTo(xcor, ycor);
+		p.transform(xcor, ycor, distance, rotRad, reflect);
 	
 		g.save();
 		applet.noFill();
@@ -387,7 +381,6 @@ public class Oogway implements Cloneable {
 	 * Begin path.
 	 */
 	public void beginPath() {
-		this.path.placeAlongX();
 		trace = Trace.PATH;
 	}
 
@@ -575,7 +568,7 @@ public class Oogway implements Cloneable {
 	 * @return the float
 	 */
 	public float xcor() {
-		return xcor();
+		return xcor;
 	}
 
 	/**
@@ -584,7 +577,7 @@ public class Oogway implements Cloneable {
 	 * @return the float
 	 */
 	public float ycor() {
-		return ycor();
+		return ycor;
 	}
 
 }
