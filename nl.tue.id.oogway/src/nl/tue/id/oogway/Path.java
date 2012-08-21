@@ -145,11 +145,15 @@ public class Path {
 
 		StringBuffer pathChars = new StringBuffer();
 
-		String pathDataBuffer = trySvgFile(path); // try whether "path" is a SVG
-													// file;
+		String pathDataBuffer = path;
 
-		if (pathDataBuffer == null)
-			pathDataBuffer = path;
+		if (path.length() > 4) {
+			if (path.substring(path.length() - 4).equalsIgnoreCase(".svg")) {
+				pathDataBuffer = trySvgFile(path); 
+				if (pathDataBuffer == null)
+					return;
+			}
+		}
 
 		boolean lastSeperate = false;
 
@@ -182,104 +186,114 @@ public class Path {
 
 		float cp[] = { 0, 0 };
 
-		for (int i = 0; i < pathDataKeys.length; i++) {
-			char c = pathDataKeys[i].charAt(0);
-			switch (c) {
-			// M - move to (absolute)
-			case 'M': {
-				cp[0] = valueOf(pathDataKeys[i + 1]);
-				cp[1] = valueOf(pathDataKeys[i + 2]);
-				float s[] = { cp[0], cp[1] };
-				i += 2;
-				vertices.add(s);
+		try {
+			for (int i = 0; i < pathDataKeys.length; i++) {
+				char c = pathDataKeys[i].charAt(0);
+				switch (c) {
+				// M - move to (absolute)
+				case 'M': {
+					cp[0] = valueOf(pathDataKeys[i + 1]);
+					cp[1] = valueOf(pathDataKeys[i + 2]);
+					float s[] = { cp[0], cp[1] };
+					i += 2;
+					vertices.add(s);
+				}
+					break;
+				// m - move to (relative)
+				case 'm': {
+					cp[0] = cp[0] + valueOf(pathDataKeys[i + 1]);
+					cp[1] = cp[1] + valueOf(pathDataKeys[i + 2]);
+					float s[] = { cp[0], cp[1] };
+					i += 2;
+					vertices.add(s);
+				}
+					break;
+				// C - curve to (absolute)
+				case 'C': {
+					float curvePA[] = { valueOf(pathDataKeys[i + 1]),
+							valueOf(pathDataKeys[i + 2]) };
+					float curvePB[] = { valueOf(pathDataKeys[i + 3]),
+							valueOf(pathDataKeys[i + 4]) };
+					float endP[] = { valueOf(pathDataKeys[i + 5]),
+							valueOf(pathDataKeys[i + 6]) };
+					cp[0] = endP[0];
+					cp[1] = endP[1];
+					i += 6;
+					vertices.add(curvePA);
+					vertices.add(curvePB);
+					vertices.add(endP);
+				}
+					break;
+				// c - curve to (relative)
+				case 'c': {
+					float curvePA[] = { cp[0] + valueOf(pathDataKeys[i + 1]),
+							cp[1] + valueOf(pathDataKeys[i + 2]) };
+					float curvePB[] = { cp[0] + valueOf(pathDataKeys[i + 3]),
+							cp[1] + valueOf(pathDataKeys[i + 4]) };
+					float endP[] = { cp[0] + valueOf(pathDataKeys[i + 5]),
+							cp[1] + valueOf(pathDataKeys[i + 6]) };
+					cp[0] = endP[0];
+					cp[1] = endP[1];
+					i += 6;
+					vertices.add(curvePA);
+					vertices.add(curvePB);
+					vertices.add(endP);
+				}
+					break;
+				// S - curve to shorthand (absolute)
+				case 'S': {
+					float lastPoint[] = (float[]) vertices
+							.get(vertices.size() - 1);
+					float lastLastPoint[] = (float[]) vertices.get(vertices
+							.size() - 2);
+					float curvePA[] = {
+							cp[0] + (lastPoint[0] - lastLastPoint[0]),
+							cp[1] + (lastPoint[1] - lastLastPoint[1]) };
+					float curvePB[] = { valueOf(pathDataKeys[i + 1]),
+							valueOf(pathDataKeys[i + 2]) };
+					float e[] = { valueOf(pathDataKeys[i + 3]),
+							valueOf(pathDataKeys[i + 4]) };
+					cp[0] = e[0];
+					cp[1] = e[1];
+					vertices.add(curvePA);
+					vertices.add(curvePB);
+					vertices.add(e);
+					i += 4;
+				}
+					break;
+				// s - curve to shorthand (relative)
+				case 's': {
+					float lastPoint[] = (float[]) vertices
+							.get(vertices.size() - 1);
+					float lastLastPoint[] = (float[]) vertices.get(vertices
+							.size() - 2);
+					float curvePA[] = {
+							cp[0] + (lastPoint[0] - lastLastPoint[0]),
+							cp[1] + (lastPoint[1] - lastLastPoint[1]) };
+					float curvePB[] = { cp[0] + valueOf(pathDataKeys[i + 1]),
+							cp[1] + valueOf(pathDataKeys[i + 2]) };
+					float e[] = { cp[0] + valueOf(pathDataKeys[i + 3]),
+							cp[1] + valueOf(pathDataKeys[i + 4]) };
+					cp[0] = e[0];
+					cp[1] = e[1];
+					vertices.add(curvePA);
+					vertices.add(curvePB);
+					vertices.add(e);
+					i += 4;
+				}
+					break;
+				case 'Z':
+					closed = true;
+					break;
+				case 'z':
+					closed = true;
+					break;
+				}
 			}
-				break;
-			// m - move to (relative)
-			case 'm': {
-				cp[0] = cp[0] + valueOf(pathDataKeys[i + 1]);
-				cp[1] = cp[1] + valueOf(pathDataKeys[i + 2]);
-				float s[] = { cp[0], cp[1] };
-				i += 2;
-				vertices.add(s);
-			}
-				break;
-			// C - curve to (absolute)
-			case 'C': {
-				float curvePA[] = { valueOf(pathDataKeys[i + 1]),
-						valueOf(pathDataKeys[i + 2]) };
-				float curvePB[] = { valueOf(pathDataKeys[i + 3]),
-						valueOf(pathDataKeys[i + 4]) };
-				float endP[] = { valueOf(pathDataKeys[i + 5]),
-						valueOf(pathDataKeys[i + 6]) };
-				cp[0] = endP[0];
-				cp[1] = endP[1];
-				i += 6;
-				vertices.add(curvePA);
-				vertices.add(curvePB);
-				vertices.add(endP);
-			}
-				break;
-			// c - curve to (relative)
-			case 'c': {
-				float curvePA[] = { cp[0] + valueOf(pathDataKeys[i + 1]),
-						cp[1] + valueOf(pathDataKeys[i + 2]) };
-				float curvePB[] = { cp[0] + valueOf(pathDataKeys[i + 3]),
-						cp[1] + valueOf(pathDataKeys[i + 4]) };
-				float endP[] = { cp[0] + valueOf(pathDataKeys[i + 5]),
-						cp[1] + valueOf(pathDataKeys[i + 6]) };
-				cp[0] = endP[0];
-				cp[1] = endP[1];
-				i += 6;
-				vertices.add(curvePA);
-				vertices.add(curvePB);
-				vertices.add(endP);
-			}
-				break;
-			// S - curve to shorthand (absolute)
-			case 'S': {
-				float lastPoint[] = (float[]) vertices.get(vertices.size() - 1);
-				float lastLastPoint[] = (float[]) vertices
-						.get(vertices.size() - 2);
-				float curvePA[] = { cp[0] + (lastPoint[0] - lastLastPoint[0]),
-						cp[1] + (lastPoint[1] - lastLastPoint[1]) };
-				float curvePB[] = { valueOf(pathDataKeys[i + 1]),
-						valueOf(pathDataKeys[i + 2]) };
-				float e[] = { valueOf(pathDataKeys[i + 3]),
-						valueOf(pathDataKeys[i + 4]) };
-				cp[0] = e[0];
-				cp[1] = e[1];
-				vertices.add(curvePA);
-				vertices.add(curvePB);
-				vertices.add(e);
-				i += 4;
-			}
-				break;
-			// s - curve to shorthand (relative)
-			case 's': {
-				float lastPoint[] = (float[]) vertices.get(vertices.size() - 1);
-				float lastLastPoint[] = (float[]) vertices
-						.get(vertices.size() - 2);
-				float curvePA[] = { cp[0] + (lastPoint[0] - lastLastPoint[0]),
-						cp[1] + (lastPoint[1] - lastLastPoint[1]) };
-				float curvePB[] = { cp[0] + valueOf(pathDataKeys[i + 1]),
-						cp[1] + valueOf(pathDataKeys[i + 2]) };
-				float e[] = { cp[0] + valueOf(pathDataKeys[i + 3]),
-						cp[1] + valueOf(pathDataKeys[i + 4]) };
-				cp[0] = e[0];
-				cp[1] = e[1];
-				vertices.add(curvePA);
-				vertices.add(curvePB);
-				vertices.add(e);
-				i += 4;
-			}
-				break;
-			case 'Z':
-				closed = true;
-				break;
-			case 'z':
-				closed = true;
-				break;
-			}
+		} catch (Exception e) {
+			System.err
+					.println("Oogway was not able to parse the path from the text.");
+			clear();
 		}
 	}
 
@@ -391,21 +405,11 @@ public class Path {
 	public String trySvgFile(String filename) {
 		filename = filename.trim();
 
-		if (filename.length() < 4)
-			return null;
-
-		if (filename.length() > 4) {
-			if (!filename.substring(filename.length() - 4).equalsIgnoreCase(
-					".svg")) {
-				return null;
-			}
-		}
-
 		XMLElement xml = null;
 		try {
 			xml = new XMLElement(applet, filename);
 		} catch (Exception e) {
-			PApplet.print(e);
+			System.err.println("Oogway was not able to parse the svg file.");
 			return null;
 		}
 		int n = xml.getChildCount();
