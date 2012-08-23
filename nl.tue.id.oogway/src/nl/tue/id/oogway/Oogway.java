@@ -17,6 +17,7 @@
 
 package nl.tue.id.oogway;
 
+import java.util.Hashtable;
 import java.util.Vector;
 
 import processing.core.PApplet;
@@ -58,6 +59,9 @@ public class Oogway implements Cloneable {
 	
 	/** The states. */
 	private Vector<Oogway> states = new Vector<Oogway>();
+	
+	/** The memories. */
+	private Hashtable<String, Oogway> memories = new Hashtable<String, Oogway>();
 
 	/** The trace. */
 	private Trace trace = Trace.LINE;
@@ -431,9 +435,9 @@ public class Oogway implements Cloneable {
 	}
 
 	/**
-	 * Recall.
+	 * popState.
 	 */
-	public void recall() {
+	public void popState() {
 		if (states.size() < 1)
 			return;
 		Oogway o = states.get(states.size() - 1);
@@ -444,8 +448,20 @@ public class Oogway implements Cloneable {
 	/**
 	 * Remember.
 	 */
-	public void remember() {
+	public void pushState() {
 		states.add(clone());
+	}
+	
+	
+	public void remember(String s){
+		memories.put(s, clone());
+		
+	}
+	
+	public void recall(String s){
+		if (memories.containsKey(s)){
+			copy(memories.get(s));
+		}
 	}
 
 	/**
