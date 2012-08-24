@@ -76,6 +76,8 @@ public class Oogway implements Cloneable {
 	 * setPosition.
 	 */
 	private float ycor;
+	
+	private float[] dashPattern = null;
 
 	/**
 	 * Standard constructor, creates a Oogway in the middle of the screen which
@@ -128,6 +130,14 @@ public class Oogway implements Cloneable {
 		spline.curveVertex(x, y);
 		spline.curveVertex(xcor, ycor);
 		trace = Trace.SPLINE;
+	}
+	
+	public void beginDash(float[] pattern){
+		dashPattern = pattern;
+	}
+	
+	public void endDash(){
+		dashPattern = null;
 	}
 
 	/**
@@ -205,11 +215,77 @@ public class Oogway implements Cloneable {
 
 		if (isDown) {
 			applet.stroke(penColor);
-			applet.line(xcor, ycor, x, y);
+			if (dashPattern == null)
+				applet.line(xcor, ycor, x, y);
+			else
+				dashLine(xcor, ycor, x, y);
 		}
 
 		g.restore();
 	}
+	
+	
+	/* 
+	 * Draw a dashed line with given set of dashes and gap lengths. 
+	 * x0 starting x-coordinate of line. 
+	 * y0 starting y-coordinate of line. 
+	 * x1 ending x-coordinate of line. 
+	 * y1 ending y-coordinate of line. 
+	 * spacing array giving lengths of dashes and gaps in pixels; 
+	 *  an array with values {5, 3, 9, 4} will draw a line with a 
+	 *  5-pixel dash, 3-pixel gap, 9-pixel dash, and 4-pixel gap. 
+	 *  if the array has an odd number of entries, the values are 
+	 *  recycled, so an array of {5, 3, 2} will draw a line with a 
+	 *  5-pixel dash, 3-pixel gap, 2-pixel dash, 5-pixel gap, 
+	 *  3-pixel dash, and 2-pixel gap, then repeat. 
+	 */ 
+	private void dashLine(float x0, float y0, float x1, float y1) 
+	{ 
+	  if(dashPattern == null){
+		  applet.line(x0,  y0, x1, y1);
+		  return;
+	  }
+	  float distance = PApplet.dist(x0, y0, x1, y1); 
+	  float [ ] xSpacing = new float[dashPattern.length]; 
+	  float [ ] ySpacing = new float[dashPattern.length]; 
+	  float drawn = 0.0f;  // amount of distance drawn 
+	 
+	  if (distance > 0) 
+	  { 
+	    int i; 
+	    boolean drawLine = true; // alternate between dashes and gaps 
+	 
+	    /* 
+	      Figure out x and y distances for each of the spacing values 
+	      I decided to trade memory for time; I'd rather allocate 
+	      a few dozen bytes than have to do a calculation every time 
+	      I draw. 
+	    */ 
+	    for (i = 0; i < dashPattern.length; i++) 
+	    { 
+	      xSpacing[i] = PApplet.lerp(0, (x1 - x0), dashPattern[i] / distance); 
+	      ySpacing[i] = PApplet.lerp(0, (y1 - y0), dashPattern[i] / distance); 
+	    } 
+	 
+	    i = 0; 
+	    while (drawn < distance) 
+	    { 
+      /* Add distance "drawn" by this line or gap */ 
+       drawn = drawn + PApplet.mag(xSpacing[i], ySpacing[i]); 
+
+	    if (drawLine){
+	    	if (drawn < distance)
+	    		applet.line(x0, y0, x0 + xSpacing[i], y0 + ySpacing[i]);
+	    	else
+	    		applet.line(x0,  y0, x1, y1);
+	      } 
+	      x0 += xSpacing[i]; 
+	      y0 += ySpacing[i]; 
+	      i = (i + 1) % dashPattern.length;  // cycle through array 
+	      drawLine = !drawLine;  // switch between dash and gap 
+	    } 
+	  } 
+	} 
 
 	/**
 	 * Draw path.
@@ -455,7 +531,14 @@ public class Oogway implements Cloneable {
 	
 	public void remember(String s){
 		memories.put(s, clone());
-		
+	}
+	
+	public void remember(char c){
+		remember(String.valueOf(c));
+	}
+	
+	public void remember(int i){
+		remember(String.valueOf(i));
 	}
 	
 	public void recall(String s){
@@ -463,6 +546,14 @@ public class Oogway implements Cloneable {
 			copy(memories.get(s));
 		}
 	}
+	
+	public void recall(char c){
+		recall(String.valueOf(c));
+	}
+	
+	public void recall(int i){
+		recall(String.valueOf(i));
+	}	
 
 	/**
 	 * Turn the Oogway right.
