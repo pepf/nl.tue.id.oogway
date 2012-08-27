@@ -38,13 +38,13 @@ public class Oogway implements Cloneable {
 
 	/** The g. */
 	private Graphics g;
-	
+
 	/** The angle (in degrees) that the Oogway is heading. */
 	private float heading = 0.0f;
-	
+
 	/** If false, the Oogway moves but does not leave a trail. */
 	private boolean isDown = true;
-	
+
 	/** The path. */
 	private Path path;
 
@@ -56,10 +56,10 @@ public class Oogway implements Cloneable {
 
 	/** The spline. */
 	private Spline spline;
-	
+
 	/** The states. */
 	private Vector<Oogway> states = new Vector<Oogway>();
-	
+
 	/** The memories. */
 	private Hashtable<String, Oogway> memories = new Hashtable<String, Oogway>();
 
@@ -76,7 +76,7 @@ public class Oogway implements Cloneable {
 	 * setPosition.
 	 */
 	private float ycor;
-	
+
 	private float[] dashPattern = null;
 
 	/**
@@ -98,8 +98,9 @@ public class Oogway implements Cloneable {
 
 	/**
 	 * Move Oogway backward.
-	 *
-	 * @param distance the distance
+	 * 
+	 * @param distance
+	 *            the distance
 	 */
 	public void backward(float distance) {
 		forward(-distance);
@@ -121,9 +122,11 @@ public class Oogway implements Cloneable {
 
 	/**
 	 * Begin spline.
-	 *
-	 * @param x the x
-	 * @param y the y
+	 * 
+	 * @param x
+	 *            the x
+	 * @param y
+	 *            the y
 	 */
 	public void beginSpline(float x, float y) {
 		spline.clear();
@@ -131,25 +134,32 @@ public class Oogway implements Cloneable {
 		spline.curveVertex(xcor, ycor);
 		trace = Trace.SPLINE;
 	}
-	
-	public void beginDash(float[] pattern){
+
+	public void beginDash(float[] pattern) {
 		dashPattern = pattern;
 	}
-	
-	public void endDash(){
+
+	public void beginDash() {
+		dashPattern = new float[] { 10, 5 };
+	}
+
+	public void endDash() {
 		dashPattern = null;
 	}
 
 	/**
 	 * Bk.
-	 *
-	 * @param distance the distance
+	 * 
+	 * @param distance
+	 *            the distance
 	 */
 	public void bk(float distance) {
 		backward(distance);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#clone()
 	 */
 	public Oogway clone() {
@@ -158,15 +168,15 @@ public class Oogway implements Cloneable {
 		return o;
 	}
 
-
 	/**
 	 * Copy.
-	 *
-	 * @param o the o
+	 * 
+	 * @param o
+	 *            the o
 	 */
 	protected void copy(Oogway o) {
 		applet = o.applet;
-		g = o.g;
+		g.copy(g);
 		setPosition(o.xcor, o.ycor);
 		penColor = o.penColor;
 		isDown = o.isDown;
@@ -175,17 +185,27 @@ public class Oogway implements Cloneable {
 		trace = o.trace;
 		path.copy(o.path);
 		spline.copy(o.spline);
-		states.clear();
-		for(int i = 0; i<o.states.size(); i++)
-			states.add(o.states.get(i));
+
+		/* copy dash pattern */
+		dashPattern = null;
+		if (o.dashPattern != null) {
+			dashPattern = new float[o.dashPattern.length];
+			for (int i = 0; i < o.dashPattern.length; i++)
+				dashPattern[i] = o.dashPattern[i];
+		}
+		
+		/* do not copy memories */
+		/* do not copy states */
+
 	}
-	
 
 	/**
 	 * Get the distance between this Oogway and point (x,y).
-	 *
-	 * @param x the x
-	 * @param y the y
+	 * 
+	 * @param x
+	 *            the x
+	 * @param y
+	 *            the y
 	 * @return distance in pixels.
 	 */
 	public float distance(float x, float y) {
@@ -223,83 +243,77 @@ public class Oogway implements Cloneable {
 
 		g.restore();
 	}
-	
-	
-	/* 
-	 * Draw a dashed line with given set of dashes and gap lengths. 
-	 * x0 starting x-coordinate of line. 
-	 * y0 starting y-coordinate of line. 
-	 * x1 ending x-coordinate of line. 
-	 * y1 ending y-coordinate of line. 
-	 * spacing array giving lengths of dashes and gaps in pixels; 
-	 *  an array with values {5, 3, 9, 4} will draw a line with a 
-	 *  5-pixel dash, 3-pixel gap, 9-pixel dash, and 4-pixel gap. 
-	 *  if the array has an odd number of entries, the values are 
-	 *  recycled, so an array of {5, 3, 2} will draw a line with a 
-	 *  5-pixel dash, 3-pixel gap, 2-pixel dash, 5-pixel gap, 
-	 *  3-pixel dash, and 2-pixel gap, then repeat. 
-	 */ 
-	private void dashLine(float x0, float y0, float x1, float y1) 
-	{ 
-	  if(dashPattern == null){
-		  applet.line(x0,  y0, x1, y1);
-		  return;
-	  }
-	  float distance = PApplet.dist(x0, y0, x1, y1); 
-	  float [ ] xSpacing = new float[dashPattern.length]; 
-	  float [ ] ySpacing = new float[dashPattern.length]; 
-	  float drawn = 0.0f;  // amount of distance drawn 
-	 
-	  if (distance > 0) 
-	  { 
-	    int i; 
-	    boolean drawLine = true; // alternate between dashes and gaps 
-	 
-	    /* 
-	      Figure out x and y distances for each of the spacing values 
-	      I decided to trade memory for time; I'd rather allocate 
-	      a few dozen bytes than have to do a calculation every time 
-	      I draw. 
-	    */ 
-	    for (i = 0; i < dashPattern.length; i++) 
-	    { 
-	      xSpacing[i] = PApplet.lerp(0, (x1 - x0), dashPattern[i] / distance); 
-	      ySpacing[i] = PApplet.lerp(0, (y1 - y0), dashPattern[i] / distance); 
-	    } 
-	 
-	    i = 0; 
-	    while (drawn < distance) 
-	    { 
-      /* Add distance "drawn" by this line or gap */ 
-       drawn = drawn + PApplet.mag(xSpacing[i], ySpacing[i]); 
 
-	    if (drawLine){
-	    	if (drawn < distance)
-	    		applet.line(x0, y0, x0 + xSpacing[i], y0 + ySpacing[i]);
-	    	else
-	    		applet.line(x0,  y0, x1, y1);
-	      } 
-	      x0 += xSpacing[i]; 
-	      y0 += ySpacing[i]; 
-	      i = (i + 1) % dashPattern.length;  // cycle through array 
-	      drawLine = !drawLine;  // switch between dash and gap 
-	    } 
-	  } 
-	} 
+	/*
+	 * Draw a dashed line with given set of dashes and gap lengths. x0 starting
+	 * x-coordinate of line. y0 starting y-coordinate of line. x1 ending
+	 * x-coordinate of line. y1 ending y-coordinate of line. spacing array
+	 * giving lengths of dashes and gaps in pixels; an array with values {5, 3,
+	 * 9, 4} will draw a line with a 5-pixel dash, 3-pixel gap, 9-pixel dash,
+	 * and 4-pixel gap. if the array has an odd number of entries, the values
+	 * are recycled, so an array of {5, 3, 2} will draw a line with a 5-pixel
+	 * dash, 3-pixel gap, 2-pixel dash, 5-pixel gap, 3-pixel dash, and 2-pixel
+	 * gap, then repeat.
+	 */
+	private void dashLine(float x0, float y0, float x1, float y1) {
+		if (dashPattern == null) {
+			applet.line(x0, y0, x1, y1);
+			return;
+		}
+		float distance = PApplet.dist(x0, y0, x1, y1);
+		float[] xSpacing = new float[dashPattern.length];
+		float[] ySpacing = new float[dashPattern.length];
+		float drawn = 0.0f; // amount of distance drawn
+
+		if (distance > 0) {
+			int i;
+			boolean drawLine = true; // alternate between dashes and gaps
+
+			/*
+			 * Figure out x and y distances for each of the spacing values I
+			 * decided to trade memory for time; I'd rather allocate a few dozen
+			 * bytes than have to do a calculation every time I draw.
+			 */
+			for (i = 0; i < dashPattern.length; i++) {
+				xSpacing[i] = PApplet.lerp(0, (x1 - x0), dashPattern[i]
+						/ distance);
+				ySpacing[i] = PApplet.lerp(0, (y1 - y0), dashPattern[i]
+						/ distance);
+			}
+
+			i = 0;
+			while (drawn < distance) {
+				/* Add distance "drawn" by this line or gap */
+				drawn = drawn + PApplet.mag(xSpacing[i], ySpacing[i]);
+
+				if (drawLine) {
+					if (drawn < distance)
+						applet.line(x0, y0, x0 + xSpacing[i], y0 + ySpacing[i]);
+					else
+						applet.line(x0, y0, x1, y1);
+				}
+				x0 += xSpacing[i];
+				y0 += ySpacing[i];
+				i = (i + 1) % dashPattern.length; // cycle through array
+				drawLine = !drawLine; // switch between dash and gap
+			}
+		}
+	}
 
 	/**
 	 * Draw path.
-	 *
-	 * @param distance the distance
+	 * 
+	 * @param distance
+	 *            the distance
 	 */
 	private void drawPath(float distance) {
-		
+
 		float rotRad = PApplet.radians(heading);
 
 		Path p = path.clone();
 
 		p.transform(xcor, ycor, distance, rotRad, reflect);
-	
+
 		g.save();
 		applet.noFill();
 
@@ -346,9 +360,11 @@ public class Oogway implements Cloneable {
 
 	/**
 	 * End spline.
-	 *
-	 * @param x the x
-	 * @param y the y
+	 * 
+	 * @param x
+	 *            the x
+	 * @param y
+	 *            the y
 	 */
 	public void endSpline(float x, float y) {
 		spline.curveVertex(x, y);
@@ -359,8 +375,9 @@ public class Oogway implements Cloneable {
 
 	/**
 	 * Fd.
-	 *
-	 * @param distance the distance
+	 * 
+	 * @param distance
+	 *            the distance
 	 */
 	public void fd(float distance) {
 		forward(distance);
@@ -368,19 +385,20 @@ public class Oogway implements Cloneable {
 
 	/**
 	 * Move Oogway forward.
-	 *
-	 * @param distance the distance
+	 * 
+	 * @param distance
+	 *            the distance
 	 */
 	public void forward(float distance) {
-		
+
 		float x, y;
 		float rotRad = PApplet.radians(heading);
 		x = xcor + (distance * PApplet.cos(rotRad));
 		y = ycor + (distance * PApplet.sin(rotRad));
-		
-		switch(trace){
+
+		switch (trace) {
 		case LINE:
-			drawLine(x,y);
+			drawLine(x, y);
 			break;
 		case SPLINE:
 			spline.curveVertex(x, y);
@@ -389,7 +407,7 @@ public class Oogway implements Cloneable {
 			drawPath(distance);
 			break;
 		}
-		
+
 		setPosition(x, y);
 	}
 
@@ -412,7 +430,7 @@ public class Oogway implements Cloneable {
 
 	/**
 	 * Checks if is down.
-	 *
+	 * 
 	 * @return true, if is down
 	 */
 	public boolean isDown() {
@@ -421,8 +439,9 @@ public class Oogway implements Cloneable {
 
 	/**
 	 * Turn the Oogway left.
-	 *
-	 * @param angle the angle
+	 * 
+	 * @param angle
+	 *            the angle
 	 */
 	public void left(float angle) {
 		heading -= angle * reflect;
@@ -430,8 +449,9 @@ public class Oogway implements Cloneable {
 
 	/**
 	 * Lt.
-	 *
-	 * @param angle the angle
+	 * 
+	 * @param angle
+	 *            the angle
 	 */
 	public void lt(float angle) {
 		left(angle);
@@ -439,8 +459,9 @@ public class Oogway implements Cloneable {
 
 	/**
 	 * Begin path.
-	 *
-	 * @param path the path
+	 * 
+	 * @param path
+	 *            the path
 	 */
 	public void beginPath(String path) {
 		this.path.loadPath(path);
@@ -449,8 +470,9 @@ public class Oogway implements Cloneable {
 
 	/**
 	 * Begin path.
-	 *
-	 * @param path the path
+	 * 
+	 * @param path
+	 *            the path
 	 */
 	public void beginPath(Path path) {
 		this.path.copy(path);
@@ -471,7 +493,6 @@ public class Oogway implements Cloneable {
 		path.clear();
 		trace = Trace.LINE;
 	}
-	
 
 	/**
 	 * Pd.
@@ -482,7 +503,7 @@ public class Oogway implements Cloneable {
 
 	/**
 	 * Pen color.
-	 *
+	 * 
 	 * @return the int
 	 */
 	public int penColor() {
@@ -527,33 +548,32 @@ public class Oogway implements Cloneable {
 	public void pushState() {
 		states.add(clone());
 	}
-	
-	
-	public void remember(String s){
+
+	public void remember(String s) {
 		memories.put(s, clone());
 	}
-	
-	public void remember(char c){
+
+	public void remember(char c) {
 		remember(String.valueOf(c));
 	}
-	
-	public void remember(int i){
+
+	public void remember(int i) {
 		remember(String.valueOf(i));
 	}
-	
-	public void recall(String s){
-		if (memories.containsKey(s)){
+
+	public void recall(String s) {
+		if (memories.containsKey(s)) {
 			copy(memories.get(s));
 		}
 	}
-	
-	public void recall(char c){
+
+	public void recall(char c) {
 		recall(String.valueOf(c));
 	}
-	
-	public void recall(int i){
+
+	public void recall(int i) {
 		recall(String.valueOf(i));
-	}	
+	}
 
 	/**
 	 * Turn the Oogway right.
@@ -567,8 +587,9 @@ public class Oogway implements Cloneable {
 
 	/**
 	 * Rt.
-	 *
-	 * @param angle the angle
+	 * 
+	 * @param angle
+	 *            the angle
 	 */
 	public void rt(float angle) {
 		right(angle);
@@ -576,8 +597,9 @@ public class Oogway implements Cloneable {
 
 	/**
 	 * Set the direction the Oogway is facing in to an absolute angle.
-	 *
-	 * @param angle the new heading
+	 * 
+	 * @param angle
+	 *            the new heading
 	 */
 	public void setHeading(float angle) {
 		heading = angle;
@@ -625,23 +647,27 @@ public class Oogway implements Cloneable {
 	/**
 	 * Stamp.
 	 */
-	public void stamp() {
+	public void stamp(float size) {
 		g.save();
-		applet.stroke(penColor);		
+		applet.stroke(penColor);
 		applet.pushMatrix();
 		applet.translate(xcor, ycor);
 		applet.rotate(0.5f * PApplet.PI + PApplet.radians(heading));
-		applet.line(0, 0, 10, 10);
-		applet.line(10, 10, 0, -10);
-		applet.line(0, -10, -10, 10);
-		applet.line(-10, 10, 0, 0);
+		applet.line(0, 0, size, size);
+		applet.line(size, size, 0, -size);
+		applet.line(0, -size, -size, size);
+		applet.line(-size, size, 0, 0);
 		applet.popMatrix();
 		g.restore();
+	}
+	
+	public void stamp(){
+		stamp(10);
 	}
 
 	/**
 	 * Convert the Oogway to a String representation.
-	 *
+	 * 
 	 * @return "Oogway at 100,100"
 	 */
 	@Override
@@ -651,9 +677,11 @@ public class Oogway implements Cloneable {
 
 	/**
 	 * Towards.
-	 *
-	 * @param x the x
-	 * @param y the y
+	 * 
+	 * @param x
+	 *            the x
+	 * @param y
+	 *            the y
 	 * @return the float
 	 */
 	public float towards(float x, float y) {
@@ -671,7 +699,7 @@ public class Oogway implements Cloneable {
 
 	/**
 	 * Xcor.
-	 *
+	 * 
 	 * @return the float
 	 */
 	public float xcor() {
@@ -680,7 +708,7 @@ public class Oogway implements Cloneable {
 
 	/**
 	 * Ycor.
-	 *
+	 * 
 	 * @return the float
 	 */
 	public float ycor() {

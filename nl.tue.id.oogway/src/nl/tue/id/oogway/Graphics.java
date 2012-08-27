@@ -46,6 +46,15 @@ public class Graphics {
 		this.applet = applet;
 	}
 	
+	protected void copy(Graphics g){
+		this.applet = g.applet;
+		this.fill = g.fill;
+		this.stroke = g.stroke;
+		this.fillColor = g.fillColor;
+		this.strokeColor = g.strokeColor;
+		this.strokeWeight = g.strokeWeight;
+	}
+	
 	/**
 	 * Restore.
 	 */
