@@ -110,7 +110,7 @@ public class Oogway implements Cloneable {
 	 * Begin reflection.
 	 */
 	public void beginReflection() {
-		reflect = -1;
+		reflect *= -1;
 	}
 
 	/**
@@ -348,7 +348,7 @@ public class Oogway implements Cloneable {
 	 * End reflection.
 	 */
 	public void endReflection() {
-		reflect = 1;
+		reflect *= -1;
 	}
 
 	/**
