@@ -210,7 +210,7 @@ public class Oogway implements Cloneable {
 	 */
 	public float distance(float x, float y) {
 		return PApplet.sqrt(PApplet.pow((x - xcor), 2)
-				+ PApplet.pow((x - ycor), 2));
+				+ PApplet.pow((y - ycor), 2));
 	}
 
 	/**
