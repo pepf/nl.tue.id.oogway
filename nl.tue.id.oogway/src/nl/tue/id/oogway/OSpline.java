@@ -23,7 +23,7 @@ import java.util.Vector;
 /**
  * The Class Spline.
  */
-public class Spline implements Cloneable{
+public class OSpline implements Cloneable{
 	
 	/** The applet. */
 	private PApplet applet;
@@ -36,7 +36,7 @@ public class Spline implements Cloneable{
 	 *
 	 * @param applet the applet
 	 */
-	public Spline(PApplet applet){
+	public OSpline(PApplet applet){
 		this.applet = applet;
 	}
 	
@@ -58,8 +58,8 @@ public class Spline implements Cloneable{
 	/* (non-Javadoc)
 	 * @see java.lang.Object#clone()
 	 */
-	public Spline clone(){
-		Spline s = new Spline(applet);
+	public OSpline clone(){
+		OSpline s = new OSpline(applet);
         s.copy(this);
 		return s;
 	}
@@ -69,7 +69,7 @@ public class Spline implements Cloneable{
 	 *
 	 * @param s the s
 	 */
-	protected void copy(Spline s){
+	protected void copy(OSpline s){
 		this.clear();
 		for (int i = 0; i < s.vertices.size(); i++)
 			curveVertex(s.vertices.get(i)[0], s.vertices.get(i)[1]);

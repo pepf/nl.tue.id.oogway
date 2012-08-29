@@ -1,6 +1,7 @@
+
 /*
  This file is part of Oogway.
- 
+
  Oogway is free software: you can redistribute it and/or modify
  it under the terms of the GNU Lesser General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
@@ -14,19 +15,19 @@
  You should have received a copy of the GNU Lesser General Public License
  along with PTurtle.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package nl.tue.id.oogway;
 
-// TODO: Auto-generated Javadoc
-/**
- * The Enum Trace.
- */
-public enum Trace {
+public interface Constants {
 
-	/** The line. */
-	LINE,
-	/** The spline. */
-	SPLINE,
-	/** The path. */
-	PATH;
+	//traces
+	public static final int OLINE = 1;
+	public static final int OSPLINE = 2;
+	public static final int OPATH = 3;
+	
+	//stamp shapes
+	public static final int OSVG = 0;
+	public static final int OARROW = 1;
+	public static final int OARROWLEFT = 2;
+	public static final int OARROWRIGHT=3;
+
 }

@@ -8,21 +8,28 @@ Oogway o;
 float distance_MB;
 float distance_CA;
 
+PFont font;
+
 void setup() {
   size(XSIZE, YSIZE);
   o = new Oogway(this);
   noLoop();
-  beginRecord(PDF, "CGG.pdf");
+  beginRecord(PDF, "CGG_Annotated.pdf");
   o.setPenColor(0);
+  font = createFont("Comic Sans MS",32); 
 }
 
 void draw() {
   background(255);
+  drawIntro();
+  
   tesselate(100);
 
   o.home();
   o.setPosition(250, o.ycor()+250);
   abc(250);
+  drawIHM();
+  textABC();
 
   endRecord();
 }
@@ -91,6 +98,8 @@ void abc(float size) {
   o.endPath();
 
   o.popState();
+  
+  drawArrow(size);
 }
 
 void abcReflected(float size) { //reflect against AC
@@ -127,4 +136,94 @@ void calc_CA_MB(float size) {
   abc(size);
   o.popState();
 }
+
+void drawIHM(){
+  pushStyle();
+  o.pushState();
+  textFont(font,16);
+  fill(0,0,255);
+  o.setPenColor(0,0,255);
+  o.setPosition(o.xcor()+distance_MB/2, o.ycor());
+  ellipse(o.xcor(), o.ycor(), 10 , 10);
+  text("I", o.xcor()+10, o.ycor());
+  o.left(90);
+  
+  o.beginDash();
+  o.forward(distance_CA);
+  ellipse(o.xcor(), o.ycor(), 10 , 10);
+  text("H", o.xcor()+10, o.ycor());  
+  o.endDash();
+  
+  o.setPosition(o.xcor()-distance_MB/2, o.ycor()+distance_CA/2);
+  ellipse(o.xcor(), o.ycor(), 10 , 10);
+  text("M", o.xcor()+10, o.ycor());  
+
+  o.popState(); 
+  popStyle(); 
+}
+
+void textABC(){
+  pushStyle();
+  o.pushState();
+  textFont(font,16);
+  fill(255,0,0);
+  ellipse(o.xcor(), o.ycor(), 10 , 10);
+  text("A", o.xcor()+10, o.ycor());
+  
+  o.setPosition(o.xcor(), o.ycor()-distance_CA);  
+  ellipse(o.xcor(), o.ycor(), 10 , 10);
+  text("C", o.xcor()+10, o.ycor());  
+
+  o.setPosition(o.xcor() + distance_MB, o.ycor()+distance_CA/2);  
+  ellipse(o.xcor(), o.ycor(), 10 , 10);
+  text("B", o.xcor()+10, o.ycor());   
+  
+  o.popState(); 
+  popStyle();
+}
+
+void drawArrow(float size){
+  if(!o.isDown()) return;
+  
+  o.pushState();
+
+  if(o.isReflecting()){
+    o.setPenColor(0,0,255);
+    fill(0,0,255);
+  }
+  else{
+    o.setPenColor(255,0,0);
+    fill(255,0,0);
+  }
+
+  o.penup();
+  o.left(90);
+  o.forward(distance_CA/2);
+  o.right(90);
+  o.forward(.6*distance_MB);
+  o.left(180);
+  o.pendown();
+  o.forward(.2*distance_MB);
+  o.setStamp(o.OARROWRIGHT);
+  o.stamp(size/16);
+
+  o.popState(); 
+}
+
+void drawIntro(){
+  pushStyle();
+  fill(0);
+     textFont(font,32);
+     text("Nr.21, Basic Type CGG",200,50);
+     textFont(font,16);
+     text("Bring the arbitrary line AB by glide reflection until it connects to the position BC, where the "
+     +"angle ABC is arbitrary (axis of glide reflection IH parallel to AC at equal distance from A "
+     +" and B). Close the figure by a C-line CA."
+         , 200, 100,700,200); 
+     text("Network 666,\r\n"
+     +"4 positionings."
+         , 650, 200,700,100); 
+ popStyle();
+}
+  
 

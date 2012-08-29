@@ -21,12 +21,13 @@ import java.util.Vector;
 import processing.core.PApplet;
 import processing.core.PConstants;
 import processing.xml.XMLElement;
+import static processing.core.PApplet.*;
 
 // TODO: Auto-generated Javadoc
 /**
  * The Class Path.
  */
-public class Path {
+public class OPath {
 
 	/** The applet. */
 	PApplet applet;
@@ -43,7 +44,7 @@ public class Path {
 	 * @param applet
 	 *            the applet
 	 */
-	public Path(PApplet applet) {
+	public OPath(PApplet applet) {
 		this.applet = applet;
 	}
 
@@ -66,7 +67,7 @@ public class Path {
 	 * @param path
 	 *            the path
 	 */
-	public Path(PApplet applet, String path) {
+	public OPath(PApplet applet, String path) {
 
 		this.applet = applet;
 		loadPath(path);
@@ -84,8 +85,8 @@ public class Path {
 	 * 
 	 * @see java.lang.Object#clone()
 	 */
-	public Path clone() {
-		Path path = new Path(applet);
+	public OPath clone() {
+		OPath path = new OPath(applet);
 		path.copy(this);
 		return path;
 
@@ -97,7 +98,7 @@ public class Path {
 	 * @param path
 	 *            the path
 	 */
-	protected void copy(Path path) {
+	protected void copy(OPath path) {
 		this.applet = path.applet;
 		this.clear();
 		for (int i = 0; i < path.vertices.size(); i++) {
@@ -182,7 +183,7 @@ public class Path {
 
 		pathDataBuffer = pathChars.toString();
 
-		String pathDataKeys[] = PApplet.split(pathDataBuffer, '|');
+		String pathDataKeys[] = split(pathDataBuffer, '|');
 
 		float cp[] = { 0, 0 };
 
@@ -331,7 +332,7 @@ public class Path {
 
 		moveTo(0, 0);
 		float end[] = (float[]) vertices.get(vertices.size() - 1);
-		rotateRad(-PApplet.atan2(end[1], end[0])); // rotate to X axis
+		rotateRad(-atan2(end[1], end[0])); // rotate to X axis
 		return true;
 	}
 
@@ -356,7 +357,7 @@ public class Path {
 			float a[] = (float[]) vertices.get(i);
 
 			float x = a[0], y = a[1];
-			float sin = PApplet.sin(rotRad), cos = PApplet.cos(rotRad);
+			float sin = sin(rotRad), cos = cos(rotRad);
 
 			a[0] = x * cos - y * sin;
 			a[1] = x * sin + y * cos;
@@ -376,10 +377,10 @@ public class Path {
 
 		float start[] = (float[]) vertices.get(0);
 		float end[] = (float[]) vertices.get(vertices.size() - 1);
-		float distance = PApplet.sqrt(PApplet.pow(end[0] - start[0], 2)
-				+ PApplet.pow(end[1] - start[1], 2));
+		float distance = sqrt(pow(end[0] - start[0], 2)
+				+ pow(end[1] - start[1], 2));
 
-		if (distance < PApplet.EPSILON) {
+		if (distance < EPSILON) {
 			System.err
 					.println("Starting and ending points are too close in the path. ");
 			return false;
@@ -460,8 +461,8 @@ public class Path {
 			clear();
 			vertices.add(new float[] { x, y });
 			vertices.add(new float[] { x, y });
-			float newX = x + distance * PApplet.cos(headingRad);
-			float newY = y + distance * PApplet.sin(headingRad);
+			float newX = x + distance * cos(headingRad);
+			float newY = y + distance * sin(headingRad);
 			vertices.add(new float[] { newX, newY });
 			vertices.add(new float[] { newX, newY });
 		}

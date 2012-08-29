@@ -11,7 +11,7 @@ void setup(){
   size(XSIZE,YSIZE);
   o = new Oogway(this);
   noLoop();
-  beginRecord(PDF, "TTTT-Annotated.pdf");
+  beginRecord(PDF, "TTTT_Annotated.pdf");
   o.setPenColor(0);
   font = createFont("Comic Sans MS",32); 
 }
@@ -53,20 +53,27 @@ void abcd(float size){
   o.beginPath("AD.svg"); o.forward(size); o.endPath();
   o.right(90);
   o.beginPath("AB.svg"); o.forward(size); o.endPath();
-  o.right(135);
-  o.penup();
-  o.forward(sqrt(size*size*2)/2);
-  o.pendown();
-  o.left(45);
-  o.backward(size/16);
-  o.forward(size/8);
-  o.stamp(size/32);
   o.recall("A");
+  drawArrow(size);
 }
 
+void drawArrow(float size){
+  pushStyle();
+  o.pushState();
+  fill(255,0,0);
+  o.setPenColor(255,0,0);
+  o.setPosition(o.xcor()+size/2, o.ycor()-size/2);
+  o.right(90);
+  o.backward(size/16);
+  o.forward(size/8);
+  o.stamp(size/16);  
+  o.popState();
+  popStyle();
+}  
+
 void drawIntro(){
+  pushStyle();
      textFont(font,32);
-     stroke(0);
      fill(0);
      text("Nr.1, Basic Type TTTT",200,50);
      textFont(font,16);
@@ -77,11 +84,14 @@ void drawIntro(){
      text("Network 4444,\r\n"
      + "1 positioning."
          , 650, 200,700,100); 
+         popStyle();
 }
 
 void drawDashlines(){
+  pushStyle();
+  o.pushState();
   textFont(font,16);
-  fill(255,0,0);
+  fill(255,0,55);
   
   o.recall("A");
   o.setPenColor(0,0,255);
@@ -100,5 +110,7 @@ void drawDashlines(){
   o.beginDash(); o.forward(200); o.endDash();
   text("C", o.xcor()+10, o.ycor());
   ellipse(o.xcor(), o.ycor(), 10 , 10);
+  o.popState();
+  popStyle();
 }
 

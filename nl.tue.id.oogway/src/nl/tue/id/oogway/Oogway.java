@@ -21,6 +21,8 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import processing.core.PApplet;
+import processing.core.PShape;
+import static processing.core.PApplet.*;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -31,13 +33,10 @@ import processing.core.PApplet;
  * @author Loe Feijs
  * 
  */
-public class Oogway implements Cloneable {
+public class Oogway implements Cloneable, Constants {
 
 	/** The PApplet to render to. */
 	private PApplet applet;
-
-	/** The g. */
-	private Graphics g;
 
 	/** The angle (in degrees) that the Oogway is heading. */
 	private float heading = 0.0f;
@@ -46,7 +45,7 @@ public class Oogway implements Cloneable {
 	private boolean isDown = true;
 
 	/** The path. */
-	private Path path;
+	private OPath path;
 
 	/** Color of line drawn by Oogway (as a Processing color). */
 	private int penColor;
@@ -55,7 +54,7 @@ public class Oogway implements Cloneable {
 	private int reflect = 1;
 
 	/** The spline. */
-	private Spline spline;
+	private OSpline spline;
 
 	/** The states. */
 	private Vector<Oogway> states = new Vector<Oogway>();
@@ -64,7 +63,7 @@ public class Oogway implements Cloneable {
 	private Hashtable<String, Oogway> memories = new Hashtable<String, Oogway>();
 
 	/** The trace. */
-	private Trace trace = Trace.LINE;
+	private int trace = OLINE;
 	/**
 	 * x location on screen. Any change to this variable must be done using
 	 * setPosition.
@@ -79,6 +78,9 @@ public class Oogway implements Cloneable {
 
 	private float[] dashPattern = null;
 
+	private int oogwayShape = OARROW;
+	private PShape oogwayShapeSVG = null;
+
 	/**
 	 * Standard constructor, creates a Oogway in the middle of the screen which
 	 * draws in white.
@@ -88,11 +90,10 @@ public class Oogway implements Cloneable {
 	 */
 	public Oogway(PApplet applet) {
 		this.applet = applet;
-		g = new Graphics(applet);
 		setPosition(xcor = applet.width / 2, applet.height / 2);
 		penColor = applet.color(255, 255, 255);
-		spline = new Spline(applet);
-		path = new Path(applet);
+		spline = new OSpline(applet);
+		path = new OPath(applet);
 
 	}
 
@@ -132,7 +133,7 @@ public class Oogway implements Cloneable {
 		spline.clear();
 		spline.curveVertex(x, y);
 		spline.curveVertex(xcor, ycor);
-		trace = Trace.SPLINE;
+		trace = OSPLINE;
 	}
 
 	public void beginDash(float[] pattern) {
@@ -176,13 +177,14 @@ public class Oogway implements Cloneable {
 	 */
 	protected void copy(Oogway o) {
 		applet = o.applet;
-		g.copy(g);
 		setPosition(o.xcor, o.ycor);
 		penColor = o.penColor;
 		isDown = o.isDown;
 		heading = o.heading;
 		reflect = o.reflect;
 		trace = o.trace;
+		oogwayShape = o.oogwayShape;
+		oogwayShapeSVG = o.oogwayShapeSVG;
 		path.copy(o.path);
 		spline.copy(o.spline);
 
@@ -193,7 +195,7 @@ public class Oogway implements Cloneable {
 			for (int i = 0; i < o.dashPattern.length; i++)
 				dashPattern[i] = o.dashPattern[i];
 		}
-		
+
 		/* do not copy memories */
 		/* do not copy states */
 
@@ -209,8 +211,7 @@ public class Oogway implements Cloneable {
 	 * @return distance in pixels.
 	 */
 	public float distance(float x, float y) {
-		return PApplet.sqrt(PApplet.pow((x - xcor), 2)
-				+ PApplet.pow((y - ycor), 2));
+		return sqrt(pow((x - xcor), 2) + pow((y - ycor), 2));
 	}
 
 	/**
@@ -231,7 +232,7 @@ public class Oogway implements Cloneable {
 	 */
 	private void drawLine(float x, float y) {
 
-		g.save();
+		applet.pushStyle();
 
 		if (isDown) {
 			applet.stroke(penColor);
@@ -241,7 +242,7 @@ public class Oogway implements Cloneable {
 				dashLine(xcor, ycor, x, y);
 		}
 
-		g.restore();
+		applet.popStyle();
 	}
 
 	/*
@@ -260,7 +261,7 @@ public class Oogway implements Cloneable {
 			applet.line(x0, y0, x1, y1);
 			return;
 		}
-		float distance = PApplet.dist(x0, y0, x1, y1);
+		float distance = dist(x0, y0, x1, y1);
 		float[] xSpacing = new float[dashPattern.length];
 		float[] ySpacing = new float[dashPattern.length];
 		float drawn = 0.0f; // amount of distance drawn
@@ -275,16 +276,14 @@ public class Oogway implements Cloneable {
 			 * bytes than have to do a calculation every time I draw.
 			 */
 			for (i = 0; i < dashPattern.length; i++) {
-				xSpacing[i] = PApplet.lerp(0, (x1 - x0), dashPattern[i]
-						/ distance);
-				ySpacing[i] = PApplet.lerp(0, (y1 - y0), dashPattern[i]
-						/ distance);
+				xSpacing[i] = lerp(0, (x1 - x0), dashPattern[i] / distance);
+				ySpacing[i] = lerp(0, (y1 - y0), dashPattern[i] / distance);
 			}
 
 			i = 0;
 			while (drawn < distance) {
 				/* Add distance "drawn" by this line or gap */
-				drawn = drawn + PApplet.mag(xSpacing[i], ySpacing[i]);
+				drawn = drawn + mag(xSpacing[i], ySpacing[i]);
 
 				if (drawLine) {
 					if (drawn < distance)
@@ -308,13 +307,13 @@ public class Oogway implements Cloneable {
 	 */
 	private void drawPath(float distance) {
 
-		float rotRad = PApplet.radians(heading);
+		float rotRad = radians(heading);
 
-		Path p = path.clone();
+		OPath p = path.clone();
 
 		p.transform(xcor, ycor, distance, rotRad, reflect);
 
-		g.save();
+		applet.pushStyle();
 		applet.noFill();
 
 		if (isDown) {
@@ -322,7 +321,7 @@ public class Oogway implements Cloneable {
 			p.draw();
 		}
 
-		g.restore();
+		applet.popStyle();
 
 	}
 
@@ -331,7 +330,7 @@ public class Oogway implements Cloneable {
 	 */
 	private void drawSpline() {
 
-		g.save();
+		applet.pushStyle();
 
 		applet.noFill();
 
@@ -340,7 +339,7 @@ public class Oogway implements Cloneable {
 			spline.draw();
 		}
 
-		g.restore();
+		applet.popStyle();
 
 	}
 
@@ -349,6 +348,10 @@ public class Oogway implements Cloneable {
 	 */
 	public void endReflection() {
 		reflect *= -1;
+	}
+	
+	public boolean isReflecting(){
+		return reflect == -1;
 	}
 
 	/**
@@ -370,7 +373,7 @@ public class Oogway implements Cloneable {
 		spline.curveVertex(x, y);
 		drawSpline();
 		spline.clear();
-		trace = Trace.LINE;
+		trace = OLINE;
 	}
 
 	/**
@@ -392,18 +395,18 @@ public class Oogway implements Cloneable {
 	public void forward(float distance) {
 
 		float x, y;
-		float rotRad = PApplet.radians(heading);
-		x = xcor + (distance * PApplet.cos(rotRad));
-		y = ycor + (distance * PApplet.sin(rotRad));
+		float rotRad = radians(heading);
+		x = xcor + (distance * cos(rotRad));
+		y = ycor + (distance * sin(rotRad));
 
 		switch (trace) {
-		case LINE:
+		case OLINE:
 			drawLine(x, y);
 			break;
-		case SPLINE:
+		case OSPLINE:
 			spline.curveVertex(x, y);
 			break;
-		case PATH:
+		case OPATH:
 			drawPath(distance);
 			break;
 		}
@@ -474,7 +477,7 @@ public class Oogway implements Cloneable {
 	 * @param path
 	 *            the path
 	 */
-	public void beginPath(Path path) {
+	public void beginPath(OPath path) {
 		this.path.copy(path);
 		beginPath();
 	}
@@ -483,7 +486,7 @@ public class Oogway implements Cloneable {
 	 * Begin path.
 	 */
 	public void beginPath() {
-		trace = Trace.PATH;
+		trace = OPATH;
 	}
 
 	/**
@@ -491,7 +494,7 @@ public class Oogway implements Cloneable {
 	 */
 	public void endPath() {
 		path.clear();
-		trace = Trace.LINE;
+		trace = OLINE;
 	}
 
 	/**
@@ -647,22 +650,63 @@ public class Oogway implements Cloneable {
 	/**
 	 * Stamp.
 	 */
-	public void stamp(float size) {
-		g.save();
+	public void stamp(float width, float height) {
+		applet.pushStyle();
 		applet.stroke(penColor);
 		applet.pushMatrix();
 		applet.translate(xcor, ycor);
-		applet.rotate(0.5f * PApplet.PI + PApplet.radians(heading));
-		applet.line(0, 0, size, size);
-		applet.line(size, size, 0, -size);
-		applet.line(0, -size, -size, size);
-		applet.line(-size, size, 0, 0);
+		applet.rotate(0.5f * PI + radians(heading));
+		switch (this.oogwayShape) {
+		case OSVG:
+			if(this.oogwayShapeSVG != null){
+				applet.pushStyle();
+				applet.noFill();
+				applet.shape(this.oogwayShapeSVG, -width/2, -height/2, width, height);
+				applet.popStyle();
+				break;
+			}
+		case OARROW:
+			applet.beginShape();
+			applet.vertex(0, 0);
+			applet.vertex(width / 2, height / 2);
+			applet.vertex(0, -height / 2);
+			applet.vertex(-width / 2, height / 2);
+			applet.endShape(CLOSE);
+			break;
+		case OARROWLEFT:
+			applet.beginShape();
+			applet.vertex(0, 0);
+			applet.vertex(0, -height / 2);
+			applet.vertex(-width / 2, height / 2);
+			applet.endShape(CLOSE);			
+			break;
+		case OARROWRIGHT:
+			applet.beginShape();
+			applet.vertex(0, 0);
+			applet.vertex(width / 2, height / 2);
+			applet.vertex(0, -height / 2);
+			applet.endShape(CLOSE);
+			break;
+		}
 		applet.popMatrix();
-		g.restore();
+		applet.popStyle();
 	}
-	
-	public void stamp(){
-		stamp(10);
+
+	public void stamp(float size) {
+		stamp(size, size);
+	}
+
+	public void stamp() {
+		stamp(20);
+	}
+
+	public void setStamp(int shape) {
+		this.oogwayShape = shape;
+	}
+
+	public void setStamp(String svg) {
+		this.oogwayShapeSVG = applet.loadShape(svg);
+		this.oogwayShape = OSVG;
 	}
 
 	/**
@@ -686,8 +730,8 @@ public class Oogway implements Cloneable {
 	 */
 	public float towards(float x, float y) {
 
-		float rotRad = PApplet.atan2(y - ycor, x - xcor);
-		return PApplet.degrees(rotRad);
+		float rotRad = atan2(y - ycor, x - xcor);
+		return degrees(rotRad);
 	}
 
 	/**
