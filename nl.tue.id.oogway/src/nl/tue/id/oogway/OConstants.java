@@ -17,7 +17,7 @@
  */
 package nl.tue.id.oogway;
 
-public interface Constants {
+public interface OConstants {
 
 	//traces
 	public static final int OLINE = 1;

@@ -33,7 +33,7 @@ import static processing.core.PApplet.*;
  * @author Loe Feijs
  * 
  */
-public class Oogway implements Cloneable, Constants {
+public class Oogway implements Cloneable, OConstants {
 
 	/** The PApplet to render to. */
 	private PApplet applet;
