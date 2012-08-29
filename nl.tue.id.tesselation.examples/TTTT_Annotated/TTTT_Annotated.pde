@@ -7,8 +7,14 @@ int YSIZE=int(3.6*210);
 Oogway o;
 PFont font;
 
-void setup(){
-  size(XSIZE,YSIZE);
+//latest A, B, C, D coordinates
+float ax, ay, bx, by, cx, cy, dx, dy;
+float ab = 100;
+float ad = 100;
+float degreeDAB = 80;
+
+void setup() {
+  size(XSIZE, YSIZE);
   o = new Oogway(this);
   noLoop();
   beginRecord(PDF, "TTTT_Annotated.pdf");
@@ -16,57 +22,77 @@ void setup(){
   font = createFont("Comic Sans MS",32); 
 }
 
-void draw(){
+void draw() {
   background(255);
-  drawIntro();
-  tesselate(100);
-  
+  o.setPosition(o.xcor(), o.ycor() + 250);
+  tesselate(1);
+
   o.home();
   o.setPosition(200, o.ycor()+200);
-  abcd(200);
-
-  drawDashlines();
+  abcd(2);
+  drawDashlines(2);
+  
+  drawIntro();
 
   endRecord();
 }
 
-void tesselate(float size){
-  o.home();
-  o.setPosition(o.xcor(), o.ycor()+50);
-  float x = o.xcor();
-  float y = o.ycor();
-  for (int i = 0; i<3; i++){
-    for (int j = 0; j<3; j++){
-      o.setPosition(x+i*size,y+j*size);
-      abcd(size);
+void tesselate(float scale) {
+  o.pushState();
+  for (int i = 0; i<3; i++) {
+    abcd(scale);
+    float x = dx, y = dy;   
+    for (int j = 1; j<3; j++) {
+      o.setPosition(bx, by);
+      abcd(scale);
     }
+    o.setPosition(x,y);
   }
-}
-void abcd(float size){
-  o.remember("A");
-  o.beginPath("AB.svg"); o.forward(size); o.endPath();
-  o.remember("B");
-  o.left(90);
-  o.beginPath("AD.svg"); o.forward(size); o.endPath();
-  o.recall("A");
-  o.left(90);
-  o.beginPath("AD.svg"); o.forward(size); o.endPath();
-  o.right(90);
-  o.beginPath("AB.svg"); o.forward(size); o.endPath();
-  o.recall("A");
-  drawArrow(size);
+  o.popState();
 }
 
-void drawArrow(float size){
+void abcd(float scale) {
+  o.pushState();
+  
+  //arbitrary line AB
+  ax = o.xcor(); ay = o.ycor();
+  o.beginPath("AB.svg");  o.forward(ab*scale);  o.endPath();
+  bx = o.xcor(); by = o.ycor();
+  
+  //shift AB to DC
+  o.setPosition(ax, ay);
+  o.left(degreeDAB);
+  o.penup(); o.forward(ad*scale); o.pendown();
+  dx = o.xcor(); dy = o.ycor();
+  o.right(degreeDAB);
+  o.beginPath("AB.svg");  o.forward(ab*scale);  o.endPath();
+  cx = o.xcor(); cy = o.ycor();
+  
+  //Another arbitrary line from A to D
+  o.setPosition(ax, ay);
+  o.left(degreeDAB);
+  o.beginPath("AD.svg");  o.forward(ad*scale);  o.endPath();
+  
+  //shift AD to BC;
+  o.setPosition(bx, by);
+  o.beginPath("AD.svg");  o.forward(ad*scale);  o.endPath();
+
+  o.popState();
+  
+  drawArrow(scale);
+}
+
+
+void drawArrow(float scale){
   pushStyle();
   o.pushState();
   fill(255,0,0);
   o.setPenColor(255,0,0);
-  o.setPosition(o.xcor()+size/2, o.ycor()-size/2);
-  o.right(90);
-  o.backward(size/16);
-  o.forward(size/8);
-  o.stamp(size/16);  
+  o.setPosition((ax+bx+cx+dx)/4, (ay+by+cy+dy)/4);
+  o.right(180-degreeDAB);
+  o.backward(10*scale);
+  o.forward(20*scale);
+  o.stamp(8*scale);  
   o.popState();
   popStyle();
 }  
@@ -87,27 +113,25 @@ void drawIntro(){
          popStyle();
 }
 
-void drawDashlines(){
+void drawDashlines(float scale){
   pushStyle();
   o.pushState();
   textFont(font,16);
   fill(255,0,55);
-  
-  o.recall("A");
   o.setPenColor(0,0,255);
+  
+  o.setPosition(ax, ay);
   ellipse(o.xcor(), o.ycor(), 10 , 10);
   text("A", o.xcor()+10, o.ycor());
-  o.left(90);   
-  o.beginDash(); o.forward(200); o.endDash();
+  o.left(degreeDAB);   
+  o.beginDash(); o.forward(ad*scale); o.endDash();
   text("D", o.xcor()+10, o.ycor());
   ellipse(o.xcor(), o.ycor(), 10 , 10);
   
-  o.recall("B"); 
-  o.setPenColor(0,0,255);
+  o.setPosition(bx, by);
   ellipse(o.xcor(), o.ycor(), 10 , 10);
   text("B", o.xcor()+10, o.ycor());
-  o.left(90); 
-  o.beginDash(); o.forward(200); o.endDash();
+  o.beginDash(); o.forward(ad*scale); o.endDash();
   text("C", o.xcor()+10, o.ycor());
   ellipse(o.xcor(), o.ycor(), 10 , 10);
   o.popState();

@@ -5,8 +5,12 @@ int XSIZE=int(3.6*297);
 int YSIZE=int(3.6*210);
 
 Oogway o;
-float distance_MB;
-float distance_CA;
+
+//latest A, B, C coordinates
+float ax, ay, bx, by, cx, cy;
+
+float ab = 100;
+float degreeABC = 75;
 
 PFont font;
 
@@ -21,119 +25,85 @@ void setup() {
 
 void draw() {
   background(255);
-  drawIntro();
-  
-  tesselate(100);
+  o.setPosition(o.xcor()+80, o.ycor()+250);
+  tesselate(0.7);
 
   o.home();
-  o.setPosition(250, o.ycor()+250);
-  abc(250);
+  o.setPosition(200, o.ycor()+250);
+  abc(2.5);
   drawIHM();
   textABC();
+  drawIntro();
 
   endRecord();
 }
 
-void tesselate(float size) {
-  o.home();
-  calc_CA_MB(100);
-  o.setPosition(o.xcor()+ distance_MB, o.ycor()+50);
-  float x = o.xcor();
-  float y = o.ycor();
-
-  for (int i=0; i<2; i++) {
-
-    o.setPosition(x + distance_MB, y + distance_CA * i);  
-    for (int j=0; j<2; j++) {
-      abcRotated(100);
-      abc(100);
-      o.setPosition(o.xcor()+distance_MB*2, o.ycor());
+void tesselate(float scale) {
+  o.pushState();
+ 
+  float step = ab*scale*cos(radians(degreeABC/2))*2;
+  for(int i=0; i<3; i++){
+    pair(scale);
+    float bx0 = bx, by0 = by;
+    float ax0 = ax, ay0 = ay;
+    for(int j=1; j<3; j++){
+      o.setPosition(cx + step , cy);
+      pair(scale);
     }
-
-    o.setPosition(x, o.ycor() + distance_CA/2);
-    for (int j=0; j<2; j++) {
-      abcReflected(100);
-      abcReflectedRotated(100);
-      o.setPosition(o.xcor()+distance_MB*2, o.ycor());
+    o.setPosition(bx0, by0);
+    for(int j=0; j<3; j++){
+      pairReflected(scale);
+      o.setPosition(cx + step , cy);
     }
+    o.setPosition(ax0, ay0);
   }
+  
+  o.popState();
 }
 
-void abc(float size) {
-  // we assume Oogway starts at A, heading right.
+void abc(float scale) {
   o.pushState();
+  
+  //arbitrary line AB
+  ax=o.xcor(); ay = o.ycor();
+  o.left(degreeABC/2);
+  o.beginPath("AB.svg");  o.forward(ab*scale); o.endPath();
+  bx=o.xcor(); by = o.ycor();
 
-  float ax = o.xcor();
-  float ay = o.ycor();
-
-  o.left(45);
-  o.beginPath("AB.svg"); 
-  o.forward(size); 
-  o.endPath();
-
-  float bx = o.xcor();
-  float by = o.ycor();
-
-  o.left(90);
-  o.beginReflection();
-  o.beginPath("AB.svg"); 
-  o.forward(size); 
-  o.endPath();
-  o.endReflection();
-
-  distance_CA = o.distance(ax, ay);
+  //glide reflection of AB until it connects to the position BC,
+  //where the angle ABC (degreeABC) is arbitrary.
+  o.left(180-degreeABC);
+  o.beginReflection(); o.beginPath("AB.svg"); 
+  o.forward(ab*scale); 
+  o.endPath(); o.endReflection();
+  cx = o.xcor(); cy = o.ycor();
+  
+  //close the figure by a C-line CA
   o.setHeading(o.towards(ax, ay));
-  o.beginPath("CM.svg"); 
-  o.forward(distance_CA/2); 
-  o.endPath();
-  float mx = o.xcor();
-  float my = o.ycor();
-
-  distance_MB = o.distance(bx, by);
-
+  float am = o.distance(ax,ay)/2;
+  o.beginPath("CM.svg"); o.forward(am); o.endPath();
   o.setPosition(ax, ay);
-  o.setHeading(o.towards(mx, my));
-  o.beginPath("CM.svg"); 
-  o.forward(distance_CA/2); 
-  o.endPath();
+  o.setHeading(o.towards(cx,cy));
+  o.beginPath("CM.svg"); o.forward(am); o.endPath();
 
   o.popState();
   
-  drawArrow(size);
+  drawArrow(scale);
 }
 
-void abcReflected(float size) { //reflect against AC
-  // we assume Oogway starts at A, heading right.
+void pair(float scale){
   o.pushState();
+  abc(scale);
+  o.setPosition(cx, cy);
   o.left(180);
-  o.beginReflection();
-  abc(size);
-  o.endReflection();
+  abc(scale);
   o.popState();
 }
 
-void abcReflectedRotated(float size) {
-  // we assume Oogway starts at A, heading right.
+void pairReflected(float scale) {
   o.pushState();
   o.left(180);
-  o.beginReflection();
-  abcRotated(size);
-  o.endReflection();
-  o.popState();
-}
-
-void abcRotated(float size) {
-  o.pushState();
-  o.setPosition(o.xcor(), o.ycor()-distance_CA);
-  o.left(180);
-  abc(size);
-  o.popState();
-}
-
-void calc_CA_MB(float size) {
-  o.pushState();
-  o.penup();
-  abc(size);
+  o.beginReflection(); pair(scale); o.endReflection();
   o.popState();
 }
 
@@ -142,21 +112,24 @@ void drawIHM(){
   o.pushState();
   textFont(font,16);
   fill(0,0,255);
+  
+  float ac = o.distance(cx,cy);
+  
   o.setPenColor(0,0,255);
-  o.setPosition(o.xcor()+distance_MB/2, o.ycor());
+  o.setPosition((ax+bx)/2, ay);
   ellipse(o.xcor(), o.ycor(), 10 , 10);
   text("I", o.xcor()+10, o.ycor());
   o.left(90);
   
   o.beginDash();
-  o.forward(distance_CA);
+  o.forward(ac);
   ellipse(o.xcor(), o.ycor(), 10 , 10);
   text("H", o.xcor()+10, o.ycor());  
   o.endDash();
   
-  o.setPosition(o.xcor()-distance_MB/2, o.ycor()+distance_CA/2);
-  ellipse(o.xcor(), o.ycor(), 10 , 10);
-  text("M", o.xcor()+10, o.ycor());  
+  float mx = (ax+cx)/2, my = (ay+cy)/2;
+  ellipse(mx, my, 10 , 10);
+  text("M", mx + 10, my);  
 
   o.popState(); 
   popStyle(); 
@@ -164,27 +137,23 @@ void drawIHM(){
 
 void textABC(){
   pushStyle();
-  o.pushState();
+
   textFont(font,16);
   fill(255,0,0);
-  ellipse(o.xcor(), o.ycor(), 10 , 10);
-  text("A", o.xcor()+10, o.ycor());
   
-  o.setPosition(o.xcor(), o.ycor()-distance_CA);  
-  ellipse(o.xcor(), o.ycor(), 10 , 10);
-  text("C", o.xcor()+10, o.ycor());  
+  ellipse(ax, ay, 10 , 10);
+  text("A", ax + 10, ay);
+  
+  ellipse(bx, by, 10 , 10);
+  text("B", bx + 10, by);  
 
-  o.setPosition(o.xcor() + distance_MB, o.ycor()+distance_CA/2);  
-  ellipse(o.xcor(), o.ycor(), 10 , 10);
-  text("B", o.xcor()+10, o.ycor());   
+  ellipse(cx, cy, 10 , 10);
+  text("C", cx + 10, cy);   
   
-  o.popState(); 
   popStyle();
 }
 
-void drawArrow(float size){
-  if(!o.isDown()) return;
-  
+void drawArrow(float scale){
   o.pushState();
 
   if(o.isReflecting()){
@@ -195,17 +164,14 @@ void drawArrow(float size){
     o.setPenColor(255,0,0);
     fill(255,0,0);
   }
-
-  o.penup();
-  o.left(90);
-  o.forward(distance_CA/2);
-  o.right(90);
-  o.forward(.6*distance_MB);
+  
+  o.setPosition((ax+bx+cx)/3, (ay+by+cy)/3);
+  
   o.left(180);
-  o.pendown();
-  o.forward(.2*distance_MB);
+  o.backward(8*scale);
+  o.forward(16*scale);
   o.setStamp(o.OARROWRIGHT);
-  o.stamp(size/16);
+  o.stamp(8*scale);
 
   o.popState(); 
 }
@@ -222,7 +188,7 @@ void drawIntro(){
          , 200, 100,700,200); 
      text("Network 666,\r\n"
      +"4 positionings."
-         , 650, 200,700,100); 
+         , 650, 250,700,100); 
  popStyle();
 }
   
