@@ -309,16 +309,14 @@ public class Oogway implements Cloneable, OConstants {
 
 		float rotRad = radians(heading);
 
-		OPath p = path.clone();
-
-		p.transform(xcor, ycor, distance, rotRad, reflect);
+		path.transform(xcor, ycor, distance, rotRad, reflect);
 
 		applet.pushStyle();
 		applet.noFill();
 
 		if (isDown) {
 			applet.stroke(penColor);
-			p.draw();
+			path.draw();
 		}
 
 		applet.popStyle();
@@ -471,16 +469,6 @@ public class Oogway implements Cloneable, OConstants {
 		beginPath();
 	}
 
-	/**
-	 * Begin path.
-	 * 
-	 * @param path
-	 *            the path
-	 */
-	public void beginPath(OPath path) {
-		this.path.copy(path);
-		beginPath();
-	}
 
 	/**
 	 * Begin path.
@@ -493,7 +481,6 @@ public class Oogway implements Cloneable, OConstants {
 	 * End path.
 	 */
 	public void endPath() {
-		path.clear();
 		trace = OLINE;
 	}
 

@@ -15,7 +15,7 @@ float degreeABC = 75;
 void setup() {
   size(XSIZE, YSIZE);
   o = new Oogway(this);
-  noLoop();
+  noLoop(); smooth();
   beginRecord(PDF, "CGG.pdf");
   o.setPenColor(0);
 }

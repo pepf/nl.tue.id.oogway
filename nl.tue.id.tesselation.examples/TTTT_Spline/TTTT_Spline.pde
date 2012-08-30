@@ -8,7 +8,7 @@ int YSIZE=int(3.6*210);
 PFont font;
 
 void setup() {
-  noLoop();
+  noLoop(); smooth();
   size(XSIZE, YSIZE);
   beginRecord(PDF, "TTTT_Spline.pdf");
   //this was tricky, see JunTestFont or email 20-12-2011

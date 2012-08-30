@@ -16,7 +16,7 @@ float degreeDAB = 80;
 void setup() {
   size(XSIZE, YSIZE);
   o = new Oogway(this);
-  noLoop();
+  noLoop(); smooth();
   beginRecord(PDF, "TTTT_Annotated.pdf");
   o.setPenColor(0);
   font = createFont("Comic Sans MS",32); 

@@ -16,7 +16,7 @@ float degreeDAB = 80;
 void setup() {
   size(XSIZE, YSIZE);
   o = new Oogway(this);
-  noLoop();
+  noLoop(); smooth();
   beginRecord(PDF, "TTTT.pdf");
   o.setPenColor(0);
 }

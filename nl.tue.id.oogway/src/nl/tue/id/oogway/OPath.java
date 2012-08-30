@@ -17,11 +17,10 @@
 
 package nl.tue.id.oogway;
 
-import java.util.Vector;
+import java.util.Hashtable;
 import processing.core.PApplet;
-import processing.core.PConstants;
-import processing.xml.XMLElement;
 import static processing.core.PApplet.*;
+import processing.core.PShape;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -35,8 +34,15 @@ public class OPath {
 	/** The closed. */
 	boolean closed = false;
 
-	/** The vertices. */
-	Vector<float[]> vertices = new Vector<float[]>();
+
+	private static Hashtable<String, PShape> shapes = new Hashtable<String, PShape>();
+	
+	private PShape shape;
+	private float x;
+	private float y; 
+	private float distance;
+	private float headingRad;
+	private int reflect;
 
 	/**
 	 * Instantiates a new path.
@@ -56,7 +62,7 @@ public class OPath {
 	@Override
 	public String toString() {
 		return "Path [applet=" + applet + ", closed=" + closed + ", vertices="
-				+ vertices + "]";
+				+ shape.getVertexCount() + "]";
 	}
 
 	/**
@@ -70,14 +76,12 @@ public class OPath {
 	public OPath(PApplet applet, String path) {
 
 		this.applet = applet;
-		loadPath(path);
-	}
-
-	/**
-	 * Clear.
-	 */
-	public void clear() {
-		vertices.clear();
+		if (!loadPath(path)) {
+			System.err
+					.println("Oogway was not able to open or parse the svg file. \r\n"
+							+"Oogway supports SVG files created with Inkscape and Adobe Illustrator. "
+							+"The SVG file should contain simply one path. No other shapes are supported.");
+		}
 	}
 
 	/*
@@ -100,301 +104,49 @@ public class OPath {
 	 */
 	protected void copy(OPath path) {
 		this.applet = path.applet;
-		this.clear();
-		for (int i = 0; i < path.vertices.size(); i++) {
-			float a[] = (float[]) path.vertices.get(i);
-			float b[] = { a[0], a[1] };
-			vertices.add(b);
-		}
+		this.shape = path.shape;
+		this.x = path.x;
+		this.y = path.y;
+		this.distance = path.distance;
+		this.headingRad = path.headingRad;
+		this.reflect = path.reflect;
 	}
 
 	/**
 	 * Draw.
 	 */
 	public void draw() {
-
-		if (vertices.size() < 4)
-			return;
-
-		applet.beginShape();
-		float start[] = (float[]) vertices.get(0);
-		applet.vertex(start[0], start[1]);
-		for (int i = 1; i < vertices.size(); i += 3) {
-			float a[] = (float[]) vertices.get(i);
-			float b[] = (float[]) vertices.get(i + 1);
-			float e[] = (float[]) vertices.get(i + 2);
-
-			applet.bezierVertex(a[0], a[1], b[0], b[1], e[0], e[1]);
-
-		}
-
-		if (closed)
-			applet.endShape(PConstants.CLOSE);
-		else
-			applet.endShape();
-	}
-
-	/**
-	 * Load path.
-	 * 
-	 * @param path
-	 *            the path
-	 */
-	protected void loadPath(String path) {
-
-		this.clear();
-
-		StringBuffer pathChars = new StringBuffer();
-
-		String pathDataBuffer = path;
-
-		if (path.length() > 4) {
-			if (path.substring(path.length() - 4).equalsIgnoreCase(".svg")) {
-				pathDataBuffer = trySvgFile(path); 
-				if (pathDataBuffer == null)
-					return;
-			}
-		}
-
-		boolean lastSeperate = false;
-
-		for (int i = 0; i < pathDataBuffer.length(); i++) {
-			char c = pathDataBuffer.charAt(i);
-			boolean seperate = false;
-
-			if (c == 'M' || c == 'm' || c == 'L' || c == 'l' || c == 'H'
-					|| c == 'h' || c == 'V' || c == 'v' || c == 'C' || c == 'c'
-					|| c == 'S' || c == 's' || c == ',' || c == 'Z' || c == 'z') {
-				seperate = true;
-				if (i != 0)
-					pathChars.append("|");
-			}
-			if (c == 'Z' || c == 'z')
-				seperate = false;
-			if (c == '-' && !lastSeperate) {
-				pathChars.append("|");
-			}
-			if (c != ',')
-				pathChars.append("" + pathDataBuffer.charAt(i));
-			if (seperate && c != ',' && c != '-')
-				pathChars.append("|");
-			lastSeperate = seperate;
-		}
-
-		pathDataBuffer = pathChars.toString();
-
-		String pathDataKeys[] = split(pathDataBuffer, '|');
-
-		float cp[] = { 0, 0 };
-
-		try {
-			for (int i = 0; i < pathDataKeys.length; i++) {
-				char c = pathDataKeys[i].charAt(0);
-				switch (c) {
-				// M - move to (absolute)
-				case 'M': {
-					cp[0] = valueOf(pathDataKeys[i + 1]);
-					cp[1] = valueOf(pathDataKeys[i + 2]);
-					float s[] = { cp[0], cp[1] };
-					i += 2;
-					vertices.add(s);
-				}
-					break;
-				// m - move to (relative)
-				case 'm': {
-					cp[0] = cp[0] + valueOf(pathDataKeys[i + 1]);
-					cp[1] = cp[1] + valueOf(pathDataKeys[i + 2]);
-					float s[] = { cp[0], cp[1] };
-					i += 2;
-					vertices.add(s);
-				}
-					break;
-				// C - curve to (absolute)
-				case 'C': {
-					float curvePA[] = { valueOf(pathDataKeys[i + 1]),
-							valueOf(pathDataKeys[i + 2]) };
-					float curvePB[] = { valueOf(pathDataKeys[i + 3]),
-							valueOf(pathDataKeys[i + 4]) };
-					float endP[] = { valueOf(pathDataKeys[i + 5]),
-							valueOf(pathDataKeys[i + 6]) };
-					cp[0] = endP[0];
-					cp[1] = endP[1];
-					i += 6;
-					vertices.add(curvePA);
-					vertices.add(curvePB);
-					vertices.add(endP);
-				}
-					break;
-				// c - curve to (relative)
-				case 'c': {
-					float curvePA[] = { cp[0] + valueOf(pathDataKeys[i + 1]),
-							cp[1] + valueOf(pathDataKeys[i + 2]) };
-					float curvePB[] = { cp[0] + valueOf(pathDataKeys[i + 3]),
-							cp[1] + valueOf(pathDataKeys[i + 4]) };
-					float endP[] = { cp[0] + valueOf(pathDataKeys[i + 5]),
-							cp[1] + valueOf(pathDataKeys[i + 6]) };
-					cp[0] = endP[0];
-					cp[1] = endP[1];
-					i += 6;
-					vertices.add(curvePA);
-					vertices.add(curvePB);
-					vertices.add(endP);
-				}
-					break;
-				// S - curve to shorthand (absolute)
-				case 'S': {
-					float lastPoint[] = (float[]) vertices
-							.get(vertices.size() - 1);
-					float lastLastPoint[] = (float[]) vertices.get(vertices
-							.size() - 2);
-					float curvePA[] = {
-							cp[0] + (lastPoint[0] - lastLastPoint[0]),
-							cp[1] + (lastPoint[1] - lastLastPoint[1]) };
-					float curvePB[] = { valueOf(pathDataKeys[i + 1]),
-							valueOf(pathDataKeys[i + 2]) };
-					float e[] = { valueOf(pathDataKeys[i + 3]),
-							valueOf(pathDataKeys[i + 4]) };
-					cp[0] = e[0];
-					cp[1] = e[1];
-					vertices.add(curvePA);
-					vertices.add(curvePB);
-					vertices.add(e);
-					i += 4;
-				}
-					break;
-				// s - curve to shorthand (relative)
-				case 's': {
-					float lastPoint[] = (float[]) vertices
-							.get(vertices.size() - 1);
-					float lastLastPoint[] = (float[]) vertices.get(vertices
-							.size() - 2);
-					float curvePA[] = {
-							cp[0] + (lastPoint[0] - lastLastPoint[0]),
-							cp[1] + (lastPoint[1] - lastLastPoint[1]) };
-					float curvePB[] = { cp[0] + valueOf(pathDataKeys[i + 1]),
-							cp[1] + valueOf(pathDataKeys[i + 2]) };
-					float e[] = { cp[0] + valueOf(pathDataKeys[i + 3]),
-							cp[1] + valueOf(pathDataKeys[i + 4]) };
-					cp[0] = e[0];
-					cp[1] = e[1];
-					vertices.add(curvePA);
-					vertices.add(curvePB);
-					vertices.add(e);
-					i += 4;
-				}
-					break;
-				case 'Z':
-					closed = true;
-					break;
-				case 'z':
-					closed = true;
-					break;
-				}
-			}
-		} catch (Exception e) {
-			System.err
-					.println("Oogway was not able to parse the path from the text.");
-			clear();
-		}
-	}
-
-	/**
-	 * Move to.
-	 * 
-	 * @param x
-	 *            the x
-	 * @param y
-	 *            the y
-	 */
-	private void moveTo(float x, float y) {
-
-		if (vertices.isEmpty())
-			return;
-
-		float start[] = (float[]) vertices.get(0);
-		float offset[] = { x - start[0], y - start[1] };
-
-		for (int i = 0; i < vertices.size(); i++) {
-			float a[] = (float[]) vertices.get(i);
-
-			a[0] = a[0] + offset[0];
-			a[1] = a[1] + offset[1];
-		}
-	}
-
-	/**
-	 * Place along x.
-	 */
-	private boolean placeAlongX() {
-
-		if (vertices.size() < 4)
-			return false;
-
-		moveTo(0, 0);
-		float end[] = (float[]) vertices.get(vertices.size() - 1);
-		rotateRad(-atan2(end[1], end[0])); // rotate to X axis
-		return true;
-	}
-
-	/**
-	 * Reflect in x.
-	 */
-	private void reflectInX() {
-		for (int i = 0; i < vertices.size(); i++) {
-			float a[] = (float[]) vertices.get(i);
-			a[1] = -a[1];
-		}
-	}
-
-	/**
-	 * Rotate rad.
-	 * 
-	 * @param rotRad
-	 *            the rot rad
-	 */
-	private void rotateRad(float rotRad) {
-		for (int i = 0; i < vertices.size(); i++) {
-			float a[] = (float[]) vertices.get(i);
-
-			float x = a[0], y = a[1];
-			float sin = sin(rotRad), cos = cos(rotRad);
-
-			a[0] = x * cos - y * sin;
-			a[1] = x * sin + y * cos;
-		}
-	}
-
-	/**
-	 * Scale to.
-	 * 
-	 * @param size
-	 *            the size
-	 */
-	private boolean scaleTo(float size) {
-
-		if (vertices.size() < 4)
-			return false;
-
-		float start[] = (float[]) vertices.get(0);
-		float end[] = (float[]) vertices.get(vertices.size() - 1);
-		float distance = sqrt(pow(end[0] - start[0], 2)
-				+ pow(end[1] - start[1], 2));
-
-		if (distance < EPSILON) {
+	  if(shape.getVertexCount() <2) return;
+	  
+	  float startx = shape.getVertexX(0);
+	  float starty = shape.getVertexY(0);
+	  
+	  float endx = shape.getVertexX(shape.getVertexCount()-1);
+	  float endy = shape.getVertexY(shape.getVertexCount()-1);
+	  
+	  float d = sqrt(pow(endx - startx, 2)
+				+ pow(endy - starty, 2));
+	  
+	  if (d < EPSILON) {
 			System.err
 					.println("Starting and ending points are too close in the path. ");
-			return false;
+			return;
 		}
-
-		for (int i = 0; i < vertices.size(); i++) {
-			float a[] = (float[]) vertices.get(i);
-
-			a[0] = a[0] * size / distance;
-			a[1] = a[1] * size / distance;
-		}
-
-		return true;
+	  
+	  float s = distance / d; 
+	  
+	  
+      applet.pushMatrix();
+      applet.translate(x, y);
+      applet.rotate(headingRad);    
+      applet.scale(s, s * reflect);
+      applet.rotate(-atan2(endy-starty, endx-startx));
+      applet.translate(-startx, -starty);
+      shape.draw(applet.g);
+      if(applet.recorder!=null)shape.draw(applet.recorder);
+      applet.popMatrix();
 	}
+
 
 	/**
 	 * Try svg file.
@@ -403,25 +155,45 @@ public class OPath {
 	 *            the filename
 	 * @return the string
 	 */
-	public String trySvgFile(String filename) {
+	public boolean loadPath(String filename) {
 		filename = filename.trim();
 
-		XMLElement xml = null;
-		try {
-			xml = new XMLElement(applet, filename);
-		} catch (Exception e) {
-			System.err.println("Oogway was not able to parse the svg file.");
-			return null;
-		}
-		int n = xml.getChildCount();
-		for (int i = 0; i < n; i++) {
-			XMLElement kid = xml.getChild(i);
-			String name = kid.getName().trim();
-			if (name.equalsIgnoreCase("path")) {
-				return kid.getString("d");
+		PShape s = null;
+
+		if (shapes.containsKey(filename)) {
+			s = shapes.get(filename);
+		} else {
+
+			try {
+				s = applet.loadShape(filename);
+			} catch (Exception e) {
+				return false;
 			}
+
+			if (s == null)
+				return false;
+			
+			int count = 0;
+			
+			count = s.getVertexCount();
+			while(count < 2){
+				if(s.getChildCount() == 0) break;
+				for (int i = 0; i<s.getChildCount(); i++){
+					s = s.getChild(i);
+					count = s.getVertexCount();
+					if(count >= 2 ) break;
+				}
+			}
+			
+			if (count < 2) return false;
+
+			shapes.put(filename, s);
 		}
-		return null;
+		
+
+        this.shape = s;
+
+		return true;
 	}
 
 	/**
@@ -440,45 +212,12 @@ public class OPath {
 	 */
 	public void transform(float x, float y, float distance, float headingRad,
 			int reflect) {
+		this.x = x;
+		this.y = y;
+		this.distance = distance;
+		this.headingRad = headingRad;
+		this.reflect = reflect;
 
-		boolean success = placeAlongX();
-
-		if (success) {
-			if (reflect == -1)
-				reflectInX();
-
-			success = (success && scaleTo(distance));
-
-			if (success) {
-				rotateRad(headingRad);
-				moveTo(x, y);
-			}
-		}
-
-		if (!success) {
-			System.err
-					.println("Failed to transform the path. A line is drawn instead.");
-			clear();
-			vertices.add(new float[] { x, y });
-			vertices.add(new float[] { x, y });
-			float newX = x + distance * cos(headingRad);
-			float newY = y + distance * sin(headingRad);
-			vertices.add(new float[] { newX, newY });
-			vertices.add(new float[] { newX, newY });
-		}
-
-	}
-
-	// Converts a string to a float
-	/**
-	 * Value of.
-	 * 
-	 * @param s
-	 *            the s
-	 * @return the float
-	 */
-	private float valueOf(String s) {
-		return Float.valueOf(s).floatValue();
 	}
 
 }
