@@ -152,6 +152,7 @@ public class OPath {
 		applet.scale(s, s * reflect);
 		applet.rotate(-atan2(endy - starty, endx - startx));
 		applet.translate(-startx, -starty);
+		shape.disableStyle();
 		shape.draw(applet.g);
 		if (applet.recorder != null)
 			shape.draw(applet.recorder);
