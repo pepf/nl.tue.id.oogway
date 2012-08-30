@@ -34,15 +34,14 @@ public class OPath {
 	/** The closed. */
 	boolean closed = false;
 
-
 	private static Hashtable<String, PShape> shapes = new Hashtable<String, PShape>();
-	
-	private PShape shape;
-	private float x;
-	private float y; 
-	private float distance;
-	private float headingRad;
-	private int reflect;
+
+	private PShape shape = null;
+	private float x = 0;
+	private float y = 0;
+	private float distance = 0;
+	private float headingRad = 0;
+	private int reflect = 1;
 
 	/**
 	 * Instantiates a new path.
@@ -52,6 +51,7 @@ public class OPath {
 	 */
 	public OPath(PApplet applet) {
 		this.applet = applet;
+
 	}
 
 	/*
@@ -79,8 +79,8 @@ public class OPath {
 		if (!loadPath(path)) {
 			System.err
 					.println("Oogway was not able to open or parse the svg file. \r\n"
-							+"Oogway supports SVG files created with Inkscape and Adobe Illustrator. "
-							+"The SVG file should contain simply one path. No other shapes are supported.");
+							+ "Oogway supports SVG files created with Inkscape and Adobe Illustrator. "
+							+ "The SVG file should contain simply one path. No other shapes are supported.");
 		}
 	}
 
@@ -116,37 +116,47 @@ public class OPath {
 	 * Draw.
 	 */
 	public void draw() {
-	  if(shape.getVertexCount() <2) return;
-	  
-	  float startx = shape.getVertexX(0);
-	  float starty = shape.getVertexY(0);
-	  
-	  float endx = shape.getVertexX(shape.getVertexCount()-1);
-	  float endy = shape.getVertexY(shape.getVertexCount()-1);
-	  
-	  float d = sqrt(pow(endx - startx, 2)
-				+ pow(endy - starty, 2));
-	  
-	  if (d < EPSILON) {
+		boolean drawable = true;
+
+		if (shape == null || distance < EPSILON)
+			drawable = false;
+		if (shape != null)
+			if (shape.getVertexCount() < 2)
+				drawable = false;
+
+		if (!drawable) {
+			applet.line(x, y, x + distance * cos(headingRad), y + distance
+					* sin(headingRad));
+			return;
+		}
+
+		float startx = shape.getVertexX(0);
+		float starty = shape.getVertexY(0);
+
+		float endx = shape.getVertexX(shape.getVertexCount() - 1);
+		float endy = shape.getVertexY(shape.getVertexCount() - 1);
+
+		float d = sqrt(pow(endx - startx, 2) + pow(endy - starty, 2));
+
+		if (d < EPSILON) {
 			System.err
 					.println("Starting and ending points are too close in the path. ");
 			return;
 		}
-	  
-	  float s = distance / d; 
-	  
-	  
-      applet.pushMatrix();
-      applet.translate(x, y);
-      applet.rotate(headingRad);    
-      applet.scale(s, s * reflect);
-      applet.rotate(-atan2(endy-starty, endx-startx));
-      applet.translate(-startx, -starty);
-      shape.draw(applet.g);
-      if(applet.recorder!=null)shape.draw(applet.recorder);
-      applet.popMatrix();
-	}
 
+		float s = distance / d;
+
+		applet.pushMatrix();
+		applet.translate(x, y);
+		applet.rotate(headingRad);
+		applet.scale(s, s * reflect);
+		applet.rotate(-atan2(endy - starty, endx - startx));
+		applet.translate(-startx, -starty);
+		shape.draw(applet.g);
+		if (applet.recorder != null)
+			shape.draw(applet.recorder);
+		applet.popMatrix();
+	}
 
 	/**
 	 * Try svg file.
@@ -172,26 +182,28 @@ public class OPath {
 
 			if (s == null)
 				return false;
-			
+
 			int count = 0;
-			
+
 			count = s.getVertexCount();
-			while(count < 2){
-				if(s.getChildCount() == 0) break;
-				for (int i = 0; i<s.getChildCount(); i++){
+			while (count < 2) {
+				if (s.getChildCount() == 0)
+					break;
+				for (int i = 0; i < s.getChildCount(); i++) {
 					s = s.getChild(i);
 					count = s.getVertexCount();
-					if(count >= 2 ) break;
+					if (count >= 2)
+						break;
 				}
 			}
-			
-			if (count < 2) return false;
+
+			if (count < 2)
+				return false;
 
 			shapes.put(filename, s);
 		}
-		
 
-        this.shape = s;
+		this.shape = s;
 
 		return true;
 	}
