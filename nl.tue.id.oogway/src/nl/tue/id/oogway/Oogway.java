@@ -40,6 +40,8 @@ public class Oogway implements Cloneable, OConstants {
 
 	/** The angle (in degrees) that the Oogway is heading. */
 	private float heading = 0.0f;
+	
+	private float penSize = 1;
 
 	/** If false, the Oogway moves but does not leave a trail. */
 	private boolean isDown = true;
@@ -179,6 +181,7 @@ public class Oogway implements Cloneable, OConstants {
 		applet = o.applet;
 		setPosition(o.xcor, o.ycor);
 		penColor = o.penColor;
+		penSize = o.penSize;
 		isDown = o.isDown;
 		heading = o.heading;
 		reflect = o.reflect;
@@ -218,7 +221,7 @@ public class Oogway implements Cloneable, OConstants {
 	 * Down.
 	 */
 	public void down() {
-		pendown();
+		penDown();
 	}
 
 	/**
@@ -232,17 +235,21 @@ public class Oogway implements Cloneable, OConstants {
 	 */
 	private void drawLine(float x, float y) {
 
-		applet.pushStyle();
+
 
 		if (isDown) {
+			applet.pushStyle();
 			applet.stroke(penColor);
+			applet.strokeWeight(penSize);
+			
 			if (dashPattern == null)
 				applet.line(xcor, ycor, x, y);
 			else
 				dashLine(xcor, ycor, x, y);
+			
+			applet.popStyle();
 		}
 
-		applet.popStyle();
 	}
 
 	/*
@@ -311,16 +318,14 @@ public class Oogway implements Cloneable, OConstants {
 
 		path.transform(xcor, ycor, distance, rotRad, reflect);
 
-		applet.pushStyle();
-		applet.noFill();
-
 		if (isDown) {
+			applet.pushStyle();
+			applet.noFill();
 			applet.stroke(penColor);
+			applet.strokeWeight(penSize);
 			path.draw();
+			applet.popStyle();
 		}
-
-		applet.popStyle();
-
 	}
 
 	/**
@@ -328,16 +333,16 @@ public class Oogway implements Cloneable, OConstants {
 	 */
 	private void drawSpline() {
 
-		applet.pushStyle();
-
-		applet.noFill();
 
 		if (isDown) {
+			applet.pushStyle();
+			applet.noFill();
 			applet.stroke(penColor);
+			applet.strokeWeight(penSize);
 			spline.draw();
+			applet.popStyle();
 		}
 
-		applet.popStyle();
 
 	}
 
@@ -488,7 +493,7 @@ public class Oogway implements Cloneable, OConstants {
 	 * Pd.
 	 */
 	public void pd() {
-		pendown();
+		penDown();
 	}
 
 	/**
@@ -499,18 +504,22 @@ public class Oogway implements Cloneable, OConstants {
 	public int penColor() {
 		return penColor;
 	}
+	
+	public float penSize(){
+		return penSize();
+	}
 
 	/**
 	 * put the pen down (draw subsequent movements).
 	 */
-	public void pendown() {
+	public void penDown() {
 		isDown = true;
 	}
 
 	/**
 	 * take the pen up (do not draw subsequent movements).
 	 */
-	public void penup() {
+	public void penUp() {
 		isDown = false;
 	}
 
@@ -518,7 +527,7 @@ public class Oogway implements Cloneable, OConstants {
 	 * Pu.
 	 */
 	public void pu() {
-		penup();
+		penUp();
 	}
 
 	/**
@@ -618,6 +627,10 @@ public class Oogway implements Cloneable, OConstants {
 	 */
 	public void setPenColor(int r, int g, int b) {
 		penColor = applet.color(r, g, b);
+	}
+	
+	public void setPenSize(float size){
+		penSize = size;
 	}
 
 	/**
@@ -725,7 +738,7 @@ public class Oogway implements Cloneable, OConstants {
 	 * Up.
 	 */
 	public void up() {
-		penup();
+		penUp();
 	}
 
 	/**
