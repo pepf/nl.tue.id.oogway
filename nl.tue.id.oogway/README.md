@@ -1,4 +1,6 @@
+---
 # Oogway Motion
+---
 
 ## Motion and Draw
 
@@ -57,7 +59,7 @@ Move oogway to the origin, and set its heading to the right (west);
 
 ### stamp
     stamp()
-	stame(size)
+	stamp(size)
 	stamp(width, height)
 Parameters:
 * size - float. The ooway will be stamped in a square bounding box with the specified side size.
@@ -190,7 +192,7 @@ Parameters:
 * red, gree, blue - int or float between 0 and 255.  RGB color.
 * color -  any value of the color datatype in Processing
 
-###  penColor()
+###  penColor
     penColor()
 
 Get the color of the pen; retures value of the color datatype in Processing.
@@ -204,7 +206,7 @@ Get the color of the pen; retures value of the color datatype in Processing.
 
 push the state of the oogway into a stack. The state inclues current position, heading, pen size, pen color, whether the pen is up or down, whether reflection is on, as well as other properties.
 
-### popState()
+### popState
     popState()
 Pops the latest state of the oogway out of the stack, resets oogway according to the this state.
 
