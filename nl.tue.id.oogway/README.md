@@ -43,7 +43,7 @@ Parameters:
 Set the orientation of the turtle to to_angle. 
 
 
-### setpos | setPosition
+### setPos | setPosition
     setPos(x, y)
 	setPosition(x, y)
 Parameters:
