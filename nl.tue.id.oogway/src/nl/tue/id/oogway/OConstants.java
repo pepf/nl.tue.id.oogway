@@ -23,6 +23,7 @@ public interface OConstants {
 	public static final int OLINE = 1;
 	public static final int OSPLINE = 2;
 	public static final int OPATH = 3;
+	public static final int ODASH = 4;
 	
 	//stamp shapes
 	public static final int OSVG = 0;
