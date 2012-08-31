@@ -27,7 +27,5 @@ public interface OConstants {
 	//stamp shapes
 	public static final int OSVG = 0;
 	public static final int OARROW = 1;
-	public static final int OARROWLEFT = 2;
-	public static final int OARROWRIGHT=3;
 
 }

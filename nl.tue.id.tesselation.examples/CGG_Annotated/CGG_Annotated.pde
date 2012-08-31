@@ -20,6 +20,7 @@ void setup() {
   noLoop(); smooth();
   beginRecord(PDF, "CGG_Annotated.pdf");
   o.setPenColor(0);
+  o.setPenSize(2);
   font = createFont("Comic Sans MS",32); 
 }
 
@@ -155,6 +156,23 @@ void textABC(){
 
 void drawArrow(float scale){
   o.pushState();
+ 
+  o.setPosition((ax+bx+cx)/3, (ay+by+cy)/3);
+  o.left(180);
+  if(o.isReflecting()){
+    o.setStamp("halfarrow.svg");
+  }
+  else{
+    o.setStamp("fullarrow.svg");
+  }
+  o.stamp(16*scale);
+
+  o.popState(); 
+}
+
+/*
+void drawArrow(float scale){
+  o.pushState();
 
   if(o.isReflecting()){
     o.setPenColor(0,0,255);
@@ -175,6 +193,7 @@ void drawArrow(float scale){
 
   o.popState(); 
 }
+*/
 
 void drawIntro(){
   pushStyle();

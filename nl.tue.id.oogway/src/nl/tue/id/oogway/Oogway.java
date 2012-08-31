@@ -652,8 +652,10 @@ public class Oogway implements Cloneable, OConstants {
 	 */
 	public void stamp(float width, float height) {
 		applet.pushStyle();
-		applet.stroke(penColor);
 		applet.pushMatrix();
+		
+		applet.stroke(penColor);
+		applet.strokeWeight(penSize);		
 		applet.translate(xcor, ycor);
 		applet.rotate(0.5f * PI + radians(heading));
 		switch (this.oogwayShape) {
@@ -665,29 +667,16 @@ public class Oogway implements Cloneable, OConstants {
 				applet.popStyle();
 				break;
 			}
-		case OARROW:
+		default:
 			applet.beginShape();
 			applet.vertex(0, 0);
 			applet.vertex(width / 2, height / 2);
 			applet.vertex(0, -height / 2);
 			applet.vertex(-width / 2, height / 2);
-			applet.endShape(CLOSE);
-			break;
-		case OARROWLEFT:
-			applet.beginShape();
-			applet.vertex(0, 0);
-			applet.vertex(0, -height / 2);
-			applet.vertex(-width / 2, height / 2);
-			applet.endShape(CLOSE);			
-			break;
-		case OARROWRIGHT:
-			applet.beginShape();
-			applet.vertex(0, 0);
-			applet.vertex(width / 2, height / 2);
-			applet.vertex(0, -height / 2);
 			applet.endShape(CLOSE);
 			break;
 		}
+		
 		applet.popMatrix();
 		applet.popStyle();
 	}

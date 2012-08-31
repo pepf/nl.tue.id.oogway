@@ -19,6 +19,7 @@ void draw() {
   stroke(0);
   background(255);
   Oogway o = new Oogway(this);
+  o.setPenSize(2);
   font = createFont("Comic Sans MS", 32); 
   drwIntro();
   TTTT tttt = new TTTT(o);
@@ -167,46 +168,11 @@ void drwArrowFull(Oogway o, int scalefactor) {
   //draw a big full arrow
   //s must be prferably arround 20
   o.setPenColor(255, 0, 0);
+  fill(255,0,0);
   int s=scalefactor;
-  strokeWeight(s/4+1);
   //outer arrow
-  o.forward(3*s);
-  o.left(90);
-  o.forward(s/4);
-  o.right(110);
-  o.forward(s);
-  o.right(160);
-  o.forward(s);//fill tip
-  o.forward(-s);//idem
-  o.left(20);
-  o.forward(s);
-  o.right(110);
-  o.forward(s/4);
-  o.left(90);
-  o.forward(3*s);
-  o.right(90);
-  o.forward(s/8);
-}
-void drwArrowOpen(Oogway o, int scalefactor) {
-  //draw a big non-filled arrow
-  //s must be prferably arround 20
-  o.setPenColor(255, 0, 0);
-  int s=scalefactor;
-  strokeWeight(s/8);
-  o.forward(3*s);
-  o.left(90);
-  o.forward(s/4);
-  o.right(110);
-  o.forward(s);
-  o.right(160);
-  o.left(20);
-  o.forward(s);
-  o.right(110);
-  o.forward(s/4);
-  o.left(90);
-  o.forward(3*s);
-  o.right(90);
-  o.forward(s/8);
+  o.forward(2*s);
+  o.stamp(s/2);
 }
 
 
@@ -215,8 +181,6 @@ void A2B(Oogway o, int scalefactor) {
   //using something similar to Escher's pegaus 105 as input
   o.setPenColor(0, 0, 0);
   float s=float(scalefactor)/25;
-  strokeWeight(scalefactor/8+2);
-  //strokeWeight(1);
   o.beginSpline();
   o.left(52.1);
   o.forward(s*34.0);
@@ -264,15 +228,10 @@ void A2B(Oogway o, int scalefactor) {
 }
 
 
-
-
-
 void A2D(Oogway o, int scalefactor) {
   //made by my own program escherMaker, 
   //using something similar to Escher's pegaus 105 as input
   float s=float(scalefactor)/25;
-  strokeWeight(scalefactor/8+2);
-  //strokeWeight(1);
   o.beginSpline();
   o.left(100.3);
   o.setPenColor(0, 0, 0);
@@ -366,7 +325,6 @@ void A2Ddashed(Oogway o, int scalefactor, PVector D) {
   // typically started in A, it will shoot towards position D
   o.setPenColor(0, 0, 255);
   int d=scalefactor;
-  strokeWeight(d/8+1);
   o.beginDash();
   o.setHeading(o.towards(D.x, D.y));
   o.forward(o.distance(D.x, D.y));
@@ -389,7 +347,6 @@ void drwA(PVector p, int scalefactor) {
   //to mark the points and write their name;
   //(name writing only only for the big versions);
   int d=scalefactor/2;
-  strokeWeight(d/4+2);
   stroke(255, 0, 0);
   fill(255, 0, 0);
   ellipse(p.x, p.y, d+2, d+2); 

@@ -19,6 +19,7 @@ void setup() {
   noLoop(); smooth();
   beginRecord(PDF, "TTTT.pdf");
   o.setPenColor(0);
+  o.setPenSize(2);
 }
 
 void draw() {
@@ -58,7 +59,7 @@ void abcd(float scale) {
   //shift AB to DC
   o.setPosition(ax, ay);
   o.left(degreeDAB);
-  o.penup(); o.forward(ad*scale); o.pendown();
+  o.up(); o.forward(ad*scale); o.down();
   dx = o.xcor(); dy = o.ycor();
   o.right(degreeDAB);
   o.beginPath("AB.svg");  o.forward(ab*scale);  o.endPath();

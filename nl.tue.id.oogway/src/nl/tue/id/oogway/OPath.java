@@ -43,6 +43,7 @@ public class OPath {
 	private float headingRad = 0;
 	private int reflect = 1;
 
+
 	/**
 	 * Instantiates a new path.
 	 * 
@@ -145,17 +146,21 @@ public class OPath {
 		}
 
 		float s = distance / d;
-
+		
 		applet.pushMatrix();
+		applet.pushStyle();
+		
 		applet.translate(x, y);
 		applet.rotate(headingRad);
 		applet.scale(s, s * reflect);
+		applet.strokeWeight(applet.g.strokeWeight/s);
 		applet.rotate(-atan2(endy - starty, endx - startx));
 		applet.translate(-startx, -starty);
-		shape.disableStyle();
 		shape.draw(applet.g);
 		if (applet.recorder != null)
 			shape.draw(applet.recorder);
+
+		applet.popStyle();
 		applet.popMatrix();
 	}
 
@@ -200,12 +205,14 @@ public class OPath {
 
 			if (count < 2)
 				return false;
+			
+			s.disableStyle();
 
 			shapes.put(filename, s);
 		}
 
 		this.shape = s;
-
+		
 		return true;
 	}
 
@@ -232,5 +239,6 @@ public class OPath {
 		this.reflect = reflect;
 
 	}
+	
 
 }

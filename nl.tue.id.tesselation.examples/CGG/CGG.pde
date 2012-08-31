@@ -18,6 +18,7 @@ void setup() {
   noLoop(); smooth();
   beginRecord(PDF, "CGG.pdf");
   o.setPenColor(0);
+  o.setPenSize(2);
 }
 
 void draw() {
