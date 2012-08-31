@@ -182,7 +182,7 @@ void drawIntro(){
      text("Let AB be a C-line. Draw from A another, and from B a third C-line towards the point C, "
      + "which is chosen freely (but not lying on the straight line through A and B)."
          , 200, 100,700,200); 
-     text("Network 666,\r\n"
+     text("Network 666,\n"
      +"2 positionings."
          , 650, 220,700,100); 
   popStyle();

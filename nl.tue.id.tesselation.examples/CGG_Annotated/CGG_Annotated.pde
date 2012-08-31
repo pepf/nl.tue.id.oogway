@@ -205,7 +205,7 @@ void drawIntro(){
      +"angle ABC is arbitrary (axis of glide reflection IH parallel to AC at equal distance from A "
      +" and B). Close the figure by a C-line CA."
          , 200, 100,700,200); 
-     text("Network 666,\r\n"
+     text("Network 666,\n"
      +"4 positionings."
          , 650, 250,700,100); 
  popStyle();

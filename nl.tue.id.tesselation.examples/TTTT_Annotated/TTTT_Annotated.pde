@@ -108,7 +108,7 @@ void drawIntro(){
     + "translation vector AD). Draw another arbitrary line from A to D and shift it into the position "
     + "BC (translation vector AB)."
          , 200, 100,700,200); 
-     text("Network 4444,\r\n"
+     text("Network 4444,\n"
      + "1 positioning."
          , 650, 200,700,100); 
          popStyle();
