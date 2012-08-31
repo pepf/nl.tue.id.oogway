@@ -653,9 +653,6 @@ public class Oogway implements Cloneable, OConstants {
 		stamp(20);
 	}
 
-	public void setStamp(int shape) {
-		this.oogwayShape = shape;
-	}
 
 	public void setStamp(String svg) {
 		this.oogwayShapeSVG = applet.loadShape(svg);

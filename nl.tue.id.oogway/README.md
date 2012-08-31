@@ -2,7 +2,7 @@
 
 ## Motion and Draw
 
-### forward() | fd()
+### forward | fd
     forward(distance)
     fd(distance)
 Parameters:	
@@ -10,7 +10,7 @@ Parameters:
 
 Move the oogway forward by the specified distance, in the direction the oogway is headed.
 
-### backward() | bk() | back()
+### backward | bk | back
     back(distance)
     bk(distance)
     backward(distance)
@@ -19,7 +19,7 @@ Parameters:
 
 Move the oogway backward by distance, opposite to the direction the oogway is headed. Do not change the oogway's heading.
 
-### right() | rt()
+### right | rt
 	right(angle)
 	rt(angle)
 Parameters:	
@@ -27,7 +27,7 @@ Parameters:
 
 Turn the oogway right by angle (degrees).
 
-### left() | lt()
+### left | lt
 	left(angle)
 	lt(angle)
 Parameters:	
@@ -35,7 +35,15 @@ Parameters:
 
 Turn the oogway left by angle (degrees).
 
-### setpos() | setposition()
+### setHeading
+    setHeading(to_angle)
+Parameters:
+* to_angle - float, in degrees.
+
+Set the orientation of the turtle to to_angle. 
+
+
+### setpos | setPosition
     setPos(x, y)
 	setPosition(x, y)
 Parameters:
@@ -43,11 +51,11 @@ Parameters:
 
 Move the oogway to an absolute position. No trace will be left, no matter whether the pen is down or up.
 
-###home()
+### home
     home()
 Move oogway to the origin, and set its heading to the right (west);
 
-### stamp()
+### stamp
     stamp()
 	stame(size)
 	stamp(width, height)
@@ -57,21 +65,28 @@ Parameters:
 
 Stamp a copy of the oogway shape onto the canvas at the current oogway position, along the heading orientation. By default an arrow is stamped, either filled or not filled, depending on the Processing graphics environment. An SVG shape can be stamped instead, using setStemp(). 
 
+### setStamp
+    setStamp(svgfile)
+Parameters:
+* svgfile - fine name of the SVG file
+
+Instead of the default arrow, the shape defined in the SVG file can be used as stamp.
+
 ## Tell oogway's state
 
-### xcor()
+### xcor
     xcor()
 Return the oogway's x coordinate.
 
-### ycor()
+### ycor
     ycor()
 Return the oogway's x coordinate.
 
-### heading()
+### heading
     heading()
 Return the oogway's current heading angle, in degrees.
 
-### towards()
+### towards
     towards(x, y)
    
 Parameters:
@@ -89,7 +104,7 @@ Return the distance from the oogway's position to the position specified by (x, 
 ## Change oogway's trace
 The following commands shall be always used in pairs. "begin" a trace will change the oogway's trace left on the canvas until "end" the trace. "begin"ing a trace will "end" the trace that has been "begin"ed, if it is not "end"ed. "end"ing a trace will change the trace to normal strait and solid lines.
 
-### beginDash() and endDash()
+### beginDash and endDash
     beginDash(pattern)
 	beginDash()
 	endDash()
@@ -98,5 +113,119 @@ Parameters:
 
 The dash "pattern" giving lengths of dashes and gaps in pixels; an array with values {10, 3, 9, 4} will draw a line with a 10-pixel dash, 3-pixel gap, 9-pixel dash, * and 4-pixel gap. if the array has an odd number of entries, the values
 are recycled, so an array of {5, 3, 2} will draw a line with a 5-pixel dash, 3-pixel gap, 2-pixel dash, 5-pixel gap, 3-pixel dash, and 2-pixel gap, then repeat. If no pattern is given, {10, 5} is used by default.
+
+### beginSpline and endSpline
+    beginSpline(x, y)
+	beginSpline()
+	endSpline(x,y)
+	endSpline()
+Parameters
+* x, y - float, coordinates of extra control points
+
+The current position of the oogway, and all the new positions reached by `forward()` and b`ackward()` (not including `setPositions()`) between `beginSpline()` and `endSpline()`, will be used to create a spline curve as the trace on the canvas. The starting position and the ending position are repeated as control points (which is a common practice), unless x and y parameters are used.
+
+### beginPath and endPath
+    beginPath(svgfile)
+	beginPath()
+	endPath()
+Parameters
+* svgfile - String, file name of the SVG file
+
+`beginPath(svgfile)` will load a path/curve from the specified SVG file as the trace for every `forward()` and `backward()` until `endPath()`. `beginPath()` without the parameter will load again the latest SVG file been loaded. If there is no previous SVG file been loaded, `beginPath()` has no effect but the oogway will leave a straght line on canvas instead.
+
+Oogway supports SVG files created with Inkscape and Adobe Illustrator. The SVG file should contain simply one path or polylines that are created use multiple vertices. If more than one paths are included in the SVG file, only the first one will be loaded. 
+
+The starting vertex and the ending vertex of the path shall differ, or a straight line trace will be left on canvas instead.
+
+### Reflection of the trace
+    beginReflection()
+	endReflection()
+	isReflecting()
+
+All the traces left by the oogway on the canvas between beginReflection() and endReflection will be reflected. Technically , it swaps `left()` and `right()` between `beginReflection()` and `endReflection()`, which can also be achieved by simply multiplying -1 with the angles of `left()` and `right()`. But it also affects the paths that are loaded with the `beginPath(svgfile)` method.
+
+`beginReflection()` and `endReflection()` can be nested. `isReflecting()` returns `ture` if the current trace is reflected, otherwise returns `false`.
+
+---
+# Pen control
+---
+## Drawing control
+### penDown | pd | down
+    penDown()
+	pd()
+	down()
+
+Pull the pen down ¨C drawing when moving.
+
+### penUp | pu | up
+    penUp()
+    pu()
+    up()
+
+Pull the pen up ¨C no drawing when moving.
+
+### penSize
+    penSize()
+
+Retures the size of the pen.
+
+### setPenSize
+    setPenSize(size)
+Parameters:
+* size - float.
+
+Set the size of the pen. It changes the thickness of the trace. 
+
+### isDown
+    isDown()
+Return `true` if pen is down, `false` if it¡¯s up.
+
+## Color contol
+### setPenColor
+    setPenColor(gray)
+	setPenColor(color)
+	setPenColor(red, green, blue)
+Parameters:
+* gray - int or float between 0 and 255: specifies a value between white and black
+* red, gree, blue - int or float between 0 and 255.  RGB color.
+* color -  any value of the color datatype in Processing
+
+###  penColor()
+    penColor()
+
+Get the color of the pen; retures value of the color datatype in Processing.
+
+---
+# Oogway state
+---
+
+### pushState
+    pushState()
+
+push the state of the oogway into a stack. The state inclues current position, heading, pen size, pen color, whether the pen is up or down, whether reflection is on, as well as other properties.
+
+### popState()
+    popState()
+Pops the latest state of the oogway out of the stack, resets oogway according to the this state.
+
+### remember
+    remember(key)
+Parameters:
+* key - String, char or int. 
+
+Saves the current state of the oogway into a hash table using the `key`. 
+
+### recall
+    recall(key)
+parameters:
+* key - String, char or int. 
+
+Use the `key` to find the saved state, and restore the state of oogway accordingly.
+
+### clone
+    clone()
+
+Create and return a clone of the oogway with the same state. The state inclues current position, heading, pen size, pen color, whether the pen is up or down, whether reflection is on, as well as other properties.
+
 
 
