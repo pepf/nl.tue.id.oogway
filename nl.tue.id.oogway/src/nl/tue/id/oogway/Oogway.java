@@ -618,6 +618,7 @@ public class Oogway implements Cloneable, OConstants {
 		applet.pushStyle();
 		applet.pushMatrix();
 		
+		
 		applet.stroke(penColor);
 		applet.strokeWeight(penSize);		
 		applet.translate(xcor, ycor);
@@ -709,4 +710,22 @@ public class Oogway implements Cloneable, OConstants {
 		return ycor;
 	}
 
+	/**
+	* Draws a polygon with a customisable radius and amount of corners
+	* 
+	* @return draws polygon on screen
+	*/
+	public void polygon(int corners, int radius) {
+	  remember("start");
+	  setPos(xcor()+radius,ycor()); //starting point of all polygons
+	  float sidelength = radius * (2*(float)PApplet.sin(PApplet.radians(180/corners)));
+	  float cornerangle = 360/corners;
+	  setHeading(0);
+	  for(int step=0; step<360; step+=cornerangle) {
+		forward(sidelength);
+		left(cornerangle);
+	  }
+	  recall("start");
+}
+	
 }
